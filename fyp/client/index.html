@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HoneyBound-Web Authenticator</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Manrope:wght@500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <div class="container">
+
+    <div class="header">
+      <div class="logo">HoneyBound-Web</div>
+      <div class="tagline">Secure Browser-Only OTP Generator</div>
+    </div>
+
+    <div id="initScreen" class="card">
+      <h2 style="margin-bottom: 20px; font-size: 1.8rem;">
+        Welcome to HoneyBound-Web
+      </h2>
+
+      <p style="color: var(--cyber-text-dim); margin-bottom: 30px; line-height: 1.6;">
+        A browser-based TOTP authenticator that uses WebAuthn-backed device
+        credentials to protect locally stored account secrets and support
+        optional honeyseed detection for linked services.
+      </p>
+
+      <div id="linkedSetupBanner" class="security-note" style="display:none; margin-bottom: 20px; padding: 18px 20px; background: rgba(0,204,255,0.05); border: 1px solid rgba(0,204,255,0.18); border-radius: 12px; line-height: 1.8; font-size: 0.9rem; color: var(--cyber-text-dim);">
+        <strong style="color: var(--cyber-text);">Linked Phone Setup:</strong><br />
+        This device was paired from your laptop. Initialize the authenticator here and HoneyBound will import the accounts that already exist on your laptop before opening the dashboard.
+      </div>
+
+      <div id="linkedSetupStatus" style="display:none; margin-bottom: 20px; padding: 14px 16px; border-radius: 12px; background: rgba(0,255,136,0.05); border: 1px solid rgba(0,255,136,0.15); line-height: 1.7; font-size: 0.88rem; color: var(--cyber-text-dim);"></div>
+
+      <button id="initBtn" class="btn btn-primary" onclick="initializeAuthenticator()">
+        Initialize Secure Authenticator
+      </button>
+
+      <div class="security-note" style="margin-top: 28px; padding: 20px; background: rgba(0,255,136,0.05); border: 1px solid rgba(0,255,136,0.15); border-radius: 12px; line-height: 1.8; font-size: 0.9rem; color: var(--cyber-text-dim);">
+        <strong style="color: var(--cyber-text);">Security Features:</strong><br />
+        WebAuthn platform credentials with user verification<br />
+        Local secret encryption with optional PRF-assisted flows<br />
+        Optional honeyseed export for linked services<br />
+        RFC 6238 compliant TOTP generation
+      </div>
+    </div>
+
+  </div>
+
+  <script src="honey.js"></script>
+  <script src="sync.js"></script>
+  <script src="main.js"></script>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const linkToken = params.get('linkToken') || '';
+    const linkedSetupBanner = document.getElementById('linkedSetupBanner');
+    const linkedSetupStatus = document.getElementById('linkedSetupStatus');
+    const initBtn = document.getElementById('initBtn');
+
+    function setLinkedStatus(message, kind) {
+      if (!linkedSetupStatus) return;
+      linkedSetupStatus.style.display = message ? 'block' : 'none';
+      linkedSetupStatus.textContent = message || '';
+      linkedSetupStatus.style.background = kind === 'error'
+        ? 'rgba(255,77,106,0.08)'
+        : 'rgba(0,255,136,0.05)';
+      linkedSetupStatus.style.borderColor = kind === 'error'
+        ? 'rgba(255,77,106,0.2)'
+        : 'rgba(0,255,136,0.15)';
+    }
+
+    function getWebAuthnAvailabilityError() {
+      var host = window.location.hostname || '';
+      var isIpv4 = /^\d{1,3}(\.\d{1,3}){3}$/.test(host);
+      var isSingleLabel = !!host && host.indexOf('.') === -1 && host !== 'localhost';
+
+      if (!window.isSecureContext) {
+        return 'This phone opened HoneyBound over an insecure HTTP link. WebAuthn requires HTTPS on mobile, so the authenticator cannot be initialised from this page.';
+      }
+      if (isIpv4 || isSingleLabel) {
+        return 'This HoneyBound page is using "' + host + '" as its host. Mobile WebAuthn needs a valid domain name, not a raw IP or bare machine name. Open the QR flow from a real HTTPS hostname instead.';
+      }
+      if (!navigator.credentials || typeof navigator.credentials.create !== 'function') {
+        return 'This browser does not expose WebAuthn credentials here. Try Safari/Chrome directly in a normal browser tab on a secure HTTPS page.';
+      }
+      return '';
+    }
+
+    async function importLinkedAccounts(token) {
+      if (!token) return;
+
+      setLinkedStatus('Checking linked-device bundle from your laptop...', '');
+      const sessionRes = await fetch('/api/honey/link-device/session/' + encodeURIComponent(token), { cache: 'no-store' });
+      const sessionData = await sessionRes.json().catch(() => ({}));
+      if (!sessionRes.ok || !sessionData.session) {
+        throw new Error(sessionData.error || 'Could not load linked device session');
+      }
+
+      const session = sessionData.session;
+      const uid = session.uid || '';
+      if (uid) localStorage.setItem('hbw_user_id_v1', uid);
+      localStorage.setItem('hbw_mobile_link_session_v1', JSON.stringify({
+        token: token,
+        uid: uid,
+        linkedAt: Date.now()
+      }));
+
+      setLinkedStatus('Importing existing laptop accounts onto this phone...', '');
+      const provisionRes = await fetch('/api/honey/link-device/provision/' + encodeURIComponent(token), { cache: 'no-store' });
+      const provisionData = await provisionRes.json().catch(() => ({}));
+      if (!provisionRes.ok || !provisionData.bundle || !Array.isArray(provisionData.bundle.accounts)) {
+        throw new Error(provisionData.error || 'No account bundle has been prepared yet');
+      }
+
+      const accounts = provisionData.bundle.accounts;
+      if (!accounts.length) {
+        setLinkedStatus('Setup completed. No accounts were prepared on the laptop yet, so this phone will open with an empty dashboard.', '');
+        return;
+      }
+
+      if (!window.Honey || !window.Honey.assertWithPRF) {
+        throw new Error('Honey engine is not available on this device');
+      }
+
+      const assertion = await window.Honey.assertWithPRF('encryption');
+      const existing = [];
+
+      for (const account of accounts) {
+        await window.Honey.addAccount({
+          id: account.id,
+          serviceName: account.serviceName,
+          secret: account.secret,
+          digits: account.digits || 6,
+          period: account.period || 30
+        }, assertion, null);
+
+        existing.push({
+          id: account.id,
+          serviceName: account.serviceName,
+          digits: account.digits || 6,
+          period: account.period || 30
+        });
+      }
+
+      localStorage.setItem('hbw_accounts_v1', JSON.stringify(existing));
+      if (window.HoneySync) {
+        window.HoneySync.replaceCachedAccounts(accounts);
+        try {
+          await window.HoneySync.pushSnapshot('linked-device-import');
+        } catch (syncErr) {
+          console.warn('[index] Snapshot sync failed:', syncErr && syncErr.message ? syncErr.message : syncErr);
+        }
+      }
+
+      setLinkedStatus('Linked-device import complete. Opening your dashboard...', '');
+    }
+
+    window.initializeAuthenticator = async function() {
+      initBtn.disabled = true;
+      try {
+        var webAuthnError = getWebAuthnAvailabilityError();
+        if (webAuthnError) {
+          throw new Error(webAuthnError);
+        }
+
+        if (!localStorage.getItem("hbw_webauthn_cred_id_v1")) {
+          const challenge = crypto.getRandomValues(new Uint8Array(32));
+          const userId = crypto.getRandomValues(new Uint8Array(16));
+
+          const createOptions = {
+            publicKey: {
+              challenge,
+              rp: { name: "HoneyBound Authenticator", id: window.location.hostname },
+              user: { id: userId, name: "local-user", displayName: "Local Device User" },
+              pubKeyCredParams: [{ alg: -7, type: "public-key" }, { alg: -257, type: "public-key" }],
+              authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required", residentKey: "required" },
+              extensions: { prf: {} },
+              timeout: 60000
+            }
+          };
+
+          const credential = await navigator.credentials.create(createOptions);
+          const rawId = new Uint8Array(credential.rawId);
+          const credId = btoa(String.fromCharCode(...rawId));
+          const ext = credential.getClientExtensionResults ? credential.getClientExtensionResults() : null;
+          const prfOk = !!(ext && ext.prf && ext.prf.enabled);
+
+          localStorage.setItem("hbw_webauthn_cred_id_v1", credId);
+          localStorage.setItem("hbw_prf_supported_v1", prfOk ? "true" : "false");
+        }
+
+        if (linkToken) {
+          await importLinkedAccounts(linkToken);
+          location.href = "mobile-dashboard.html?token=" + encodeURIComponent(linkToken);
+          return;
+        }
+
+        location.href = "dashboard.html";
+      } catch (error) {
+        console.error("WebAuthn Init Error:", error);
+        setLinkedStatus(error && error.message ? error.message : 'Authentication failed or cancelled.', 'error');
+        alert("Authentication failed or cancelled.");
+      } finally {
+        initBtn.disabled = false;
+      }
+    };
+
+    window.addEventListener("load", () => {
+      if (linkToken && linkedSetupBanner) {
+        linkedSetupBanner.style.display = 'block';
+        if (localStorage.getItem("hbw_webauthn_cred_id_v1")) {
+          initBtn.textContent = 'Continue Linked Device Setup';
+          setLinkedStatus('This device already has a HoneyBound authenticator. Continue setup to import the accounts from your laptop and open the dashboard.', '');
+        } else {
+          var webAuthnError = getWebAuthnAvailabilityError();
+          if (webAuthnError) {
+            setLinkedStatus(webAuthnError, 'error');
+          }
+        }
+      }
+
+      if (localStorage.getItem("hbw_webauthn_cred_id_v1") && !linkToken) {
+        location.href = "dashboard.html";
+      }
+    });
+  </script>
+</body>
+</html>

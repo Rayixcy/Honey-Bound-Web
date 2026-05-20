@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Link Device | HoneyBound-Web</title>
+  <style>
+    :root {
+      --bg: #0b1220;
+      --panel: rgba(14, 24, 42, 0.94);
+      --border: rgba(125, 211, 252, 0.22);
+      --text: #e5eefc;
+      --muted: #9fb2cc;
+      --accent: #38bdf8;
+      --accent-2: #34d399;
+      --danger: #fb7185;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background:
+        radial-gradient(circle at top, rgba(56, 189, 248, 0.18), transparent 36%),
+        linear-gradient(160deg, #020617 0%, #0b1220 58%, #111827 100%);
+      color: var(--text);
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .card {
+      width: min(100%, 420px);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px 22px;
+      box-shadow: 0 18px 48px rgba(2, 6, 23, 0.45);
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 1.5rem;
+    }
+
+    p {
+      margin: 0 0 14px;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 0.96rem;
+    }
+
+    .meta {
+      margin: 18px 0;
+      padding: 14px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      border-radius: 14px;
+    }
+
+    .meta strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 0.88rem;
+      color: var(--text);
+    }
+
+    .meta span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.5;
+      word-break: break-word;
+    }
+
+    input {
+      width: 100%;
+      margin: 10px 0 18px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      background: rgba(15, 23, 42, 0.95);
+      color: var(--text);
+      font-size: 0.96rem;
+    }
+
+    button {
+      width: 100%;
+      border: 0;
+      border-radius: 12px;
+      padding: 13px 16px;
+      background: linear-gradient(135deg, var(--accent), #2563eb);
+      color: #f8fafc;
+      font-size: 0.98rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    button[disabled] {
+      opacity: 0.65;
+      cursor: wait;
+    }
+
+    .status {
+      margin-top: 16px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      font-size: 0.92rem;
+      line-height: 1.5;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      color: var(--muted);
+    }
+
+    .status.ok {
+      color: #d1fae5;
+      border-color: rgba(52, 211, 153, 0.3);
+      background: rgba(6, 78, 59, 0.22);
+    }
+
+    .status.error {
+      color: #ffe4e6;
+      border-color: rgba(251, 113, 133, 0.34);
+      background: rgba(127, 29, 29, 0.24);
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>Link This Device</h1>
+    <p>This page pairs the current phone or tablet with your HoneyBound dashboard.</p>
+
+    <div class="meta">
+      <strong>Detected device</strong>
+      <span id="deviceInfo">Checking browser details...</span>
+    </div>
+
+    <label for="deviceName">Device name</label>
+    <input id="deviceName" type="text" maxlength="40" placeholder="Example: Raya's iPhone" />
+
+    <button id="linkBtn" type="button">Link this device</button>
+    <div class="status" id="statusBox">Waiting for confirmation.</div>
+  </main>
+
+  <script>
+    (function () {
+      'use strict';
+
+      var params = new URLSearchParams(window.location.search);
+      var token = params.get('token') || '';
+      var statusBox = document.getElementById('statusBox');
+      var button = document.getElementById('linkBtn');
+      var nameInput = document.getElementById('deviceName');
+      var deviceInfo = document.getElementById('deviceInfo');
+
+      function detectDevice() {
+        var ua = navigator.userAgent || '';
+        var platform = 'Mobile';
+        var browser = 'Browser';
+        var icon = 'Phone';
+
+        if (/iPhone|iPad|iPod/i.test(ua)) {
+          platform = /iPad/i.test(ua) ? 'iPadOS' : 'iOS';
+          icon = 'Phone';
+        } else if (/Android/i.test(ua)) {
+          platform = 'Android';
+          icon = 'Phone';
+        } else if (/Windows/i.test(ua)) {
+          platform = 'Windows';
+          icon = 'Laptop';
+        } else if (/Mac OS X|Macintosh/i.test(ua)) {
+          platform = 'macOS';
+          icon = 'Laptop';
+        }
+
+        if (/Edg\//i.test(ua)) browser = 'Edge';
+        else if (/Chrome\//i.test(ua)) browser = 'Chrome';
+        else if (/Safari\//i.test(ua) && !/Chrome\//i.test(ua)) browser = 'Safari';
+        else if (/Firefox\//i.test(ua)) browser = 'Firefox';
+
+        return { platform: platform, browser: browser, icon: icon };
+      }
+
+      function setStatus(message, kind) {
+        statusBox.textContent = message;
+        statusBox.className = 'status' + (kind ? ' ' + kind : '');
+      }
+
+      var info = detectDevice();
+      deviceInfo.textContent = info.platform + ' / ' + info.browser;
+      nameInput.value = info.platform + ' ' + info.browser;
+
+      if (!token) {
+        button.disabled = true;
+        setStatus('This link is missing its token. Please scan a fresh QR code.', 'error');
+        return;
+      }
+
+      button.addEventListener('click', async function () {
+        button.disabled = true;
+        setStatus('Linking this device to HoneyBound...', '');
+
+        try {
+          var res = await fetch('/api/honey/link-device/claim', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              token: token,
+              deviceName: (nameInput.value || '').trim(),
+              platform: info.platform,
+              browser: info.browser,
+              icon: info.icon
+            })
+          });
+
+          var data = await res.json().catch(function () { return {}; });
+          if (!res.ok || !data.session || !data.session.device) {
+            throw new Error(data.error || 'Could not link this device');
+          }
+
+          setStatus(
+            'Linked successfully as "' + data.session.device.name + '". Opening HoneyBound setup...',
+            'ok'
+          );
+          setTimeout(function () {
+            window.location.href = 'phone-init.html?token=' + encodeURIComponent(token);
+          }, 700);
+        } catch (err) {
+          button.disabled = false;
+          setStatus(err && err.message ? err.message : 'Could not link this device.', 'error');
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

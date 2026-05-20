@@ -1,0 +1,712 @@
+/* ══════════════════════════════════════════════════════════════
+   HoneyBound-Web Authenticator — Cyberpunk Theme Stylesheet
+   ══════════════════════════════════════════════════════════════ */
+
+/* ────────────────────────────────────────────────────
+   CSS Variables
+   ──────────────────────────────────────────────────── */
+:root {
+    --cyber-bg:         #0a0e1a;
+    --cyber-surface:    #111827;
+    --cyber-surface-2:  #161d30;
+    --cyber-border:     #1e2942;
+    --cyber-border-dim: #16213a;
+    --cyber-accent:     #00ff88;
+    --cyber-accent-dim: #00cc6a;
+    --cyber-blue:       #00ccff;
+    --cyber-warning:    #ff6b35;
+    --cyber-yellow:     #ffcc00;
+    --cyber-text:       #e4e8f0;
+    --cyber-text-dim:   #8b92a8;
+    --cyber-glow:       rgba(0, 255, 136, 0.15);
+    --cyber-glow-blue:  rgba(0, 204, 255, 0.12);
+    --cyber-shadow:     0 8px 40px rgba(0, 0, 0, 0.5);
+}
+
+/* ────────────────────────────────────────────────────
+   Reset & Base
+   ──────────────────────────────────────────────────── */
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Manrope', sans-serif;
+    background: var(--cyber-bg);
+    color: var(--cyber-text);
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+}
+
+/* ────────────────────────────────────────────────────
+   Animated Background Grid
+   ──────────────────────────────────────────────────── */
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(30, 41, 66, 0.25) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(30, 41, 66, 0.25) 1px, transparent 1px);
+    background-size: 50px 50px;
+    z-index: 0;
+    animation: gridMove 20s linear infinite;
+    pointer-events: none;
+}
+
+/* Subtle top glow vignette */
+body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(0,255,136,0.045) 0%, transparent 60%);
+    z-index: 0;
+    pointer-events: none;
+}
+
+@keyframes gridMove {
+    0%   { transform: translate(0, 0); }
+    100% { transform: translate(50px, 50px); }
+}
+
+/* ────────────────────────────────────────────────────
+   Layout Container
+   ──────────────────────────────────────────────────── */
+.container {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 24px 60px;
+}
+
+/* ────────────────────────────────────────────────────
+   Header
+   ──────────────────────────────────────────────────── */
+.header {
+    text-align: center;
+    margin-bottom: 36px;
+}
+
+.logo {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 2.4rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--cyber-accent) 0%, var(--cyber-blue) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -1px;
+}
+
+.tagline {
+    margin-top: 6px;
+    color: var(--cyber-text-dim);
+    font-size: 0.78rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+}
+
+/* ────────────────────────────────────────────────────
+   Card
+   ──────────────────────────────────────────────────── */
+.card {
+    background: var(--cyber-surface);
+    border: 1px solid var(--cyber-border);
+    border-radius: 18px;
+    padding: 36px;
+    box-shadow: var(--cyber-shadow);
+}
+
+/* ────────────────────────────────────────────────────
+   Buttons
+   ──────────────────────────────────────────────────── */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 13px 26px;
+    border-radius: 10px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    border: none;
+    transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+}
+
+.btn:hover  { transform: translateY(-2px); }
+.btn:active { transform: translateY(0); opacity: 0.85; }
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--cyber-accent), var(--cyber-accent-dim));
+    color: #000;
+    box-shadow: 0 0 18px rgba(0, 255, 136, 0.2);
+}
+
+.btn-primary:hover {
+    box-shadow: 0 0 28px rgba(0, 255, 136, 0.4);
+}
+
+.btn-secondary {
+    border: 2px solid var(--cyber-accent) !important;
+    background: transparent;
+    color: var(--cyber-accent);
+}
+
+.btn-secondary:hover {
+    background: var(--cyber-glow);
+}
+
+/* ────────────────────────────────────────────────────
+   Status Badge
+   ──────────────────────────────────────────────────── */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    border-radius: 20px;
+    border: 1px solid var(--cyber-accent);
+    color: var(--cyber-accent);
+    background: rgba(0, 255, 136, 0.07);
+}
+
+.status-badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--cyber-accent);
+    animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.4; transform: scale(0.7); }
+}
+
+/* ────────────────────────────────────────────────────
+   Account List & Items
+   ──────────────────────────────────────────────────── */
+.account-list {
+    display: grid;
+    gap: 12px;
+}
+
+.account-item {
+    background: var(--cyber-surface-2);
+    border: 1px solid var(--cyber-border-dim);
+    border-radius: 14px;
+    padding: 18px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    transition: border-color 0.25s, background 0.25s, transform 0.2s;
+}
+
+.account-item:hover {
+    border-color: rgba(0, 255, 136, 0.3);
+    background: rgba(0, 255, 136, 0.025);
+    transform: translateX(3px);
+}
+
+.account-info h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+/* ────────────────────────────────────────────────────
+   OTP Code Display
+   ──────────────────────────────────────────────────── */
+.otp-code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: var(--cyber-accent);
+    letter-spacing: 5px;
+    text-shadow: 0 0 12px rgba(0, 255, 136, 0.4);
+    min-width: 110px;
+    text-align: right;
+}
+
+/* Timer (legacy, kept for compatibility) */
+.timer span {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem;
+    color: var(--cyber-text-dim);
+}
+
+/* ────────────────────────────────────────────────────
+   Security Note (welcome screen)
+   ──────────────────────────────────────────────────── */
+.security-note {
+    margin-top: 28px;
+    padding: 20px 22px;
+    background: rgba(0, 255, 136, 0.04);
+    border: 1px solid rgba(0, 255, 136, 0.14);
+    border-radius: 12px;
+    line-height: 1.9;
+    font-size: 0.88rem;
+    color: var(--cyber-text-dim);
+}
+
+.security-note strong {
+    color: var(--cyber-text);
+    font-size: 0.92rem;
+}
+
+/* ────────────────────────────────────────────────────
+   Form Elements (add-account page)
+   ──────────────────────────────────────────────────── */
+.add-account-form {
+    max-width: 520px;
+}
+
+.form-group {
+    margin-bottom: 22px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--cyber-text-dim);
+}
+
+.form-group input {
+    width: 100%;
+    padding: 13px 16px;
+    background: rgba(10, 14, 26, 0.85);
+    border: 1px solid var(--cyber-border);
+    border-radius: 10px;
+    color: var(--cyber-text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.95rem;
+    transition: border-color 0.25s, box-shadow 0.25s;
+}
+
+.form-group input::placeholder {
+    color: #4a5068;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: var(--cyber-accent);
+    box-shadow: 0 0 0 3px var(--cyber-glow);
+}
+
+.form-help {
+    margin-top: 6px;
+    font-size: 0.75rem;
+    color: var(--cyber-text-dim);
+    line-height: 1.5;
+}
+
+.form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 32px;
+    flex-wrap: wrap;
+}
+
+/* ────────────────────────────────────────────────────
+   Dashboard — Hero Row
+   ──────────────────────────────────────────────────── */
+.dashboard-hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 28px;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.dashboard-hero-text h2 {
+    font-size: 1.75rem;
+    font-weight: 800;
+    margin-bottom: 4px;
+}
+
+.dashboard-hero-text p {
+    color: var(--cyber-text-dim);
+    font-size: 0.88rem;
+}
+
+.btn-accounts {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 24px;
+    background: linear-gradient(135deg, var(--cyber-accent), var(--cyber-blue));
+    color: #000;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Manrope', sans-serif;
+    font-weight: 800;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    white-space: nowrap;
+    box-shadow: 0 0 20px rgba(0, 255, 136, 0.22);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-accounts:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 32px rgba(0, 255, 136, 0.45);
+}
+
+.btn-accounts svg {
+    width: 17px;
+    height: 17px;
+    flex-shrink: 0;
+}
+
+/* ────────────────────────────────────────────────────
+   Dashboard — Stat Cards
+   ──────────────────────────────────────────────────── */
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 32px;
+}
+
+.stat-card {
+    background: rgba(0, 255, 136, 0.04);
+    border: 1px solid rgba(0, 255, 136, 0.14);
+    border-radius: 14px;
+    padding: 20px 16px;
+    text-align: center;
+    transition: border-color 0.25s, background 0.25s;
+}
+
+.stat-card:hover {
+    background: rgba(0, 255, 136, 0.07);
+    border-color: rgba(0, 255, 136, 0.3);
+}
+
+.stat-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--cyber-accent);
+    text-shadow: 0 0 14px rgba(0, 255, 136, 0.35);
+    line-height: 1;
+}
+
+.stat-label {
+    margin-top: 7px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--cyber-text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* ────────────────────────────────────────────────────
+   Dashboard — Chart Sections
+   ──────────────────────────────────────────────────── */
+.chart-section {
+    margin-bottom: 32px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--cyber-border-dim);
+}
+
+.chart-section:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.chart-section h4 {
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    margin-bottom: 16px;
+    color: var(--cyber-text);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-transform: uppercase;
+}
+
+.chart-section h4::before {
+    content: '';
+    display: inline-block;
+    width: 3px;
+    height: 15px;
+    background: linear-gradient(180deg, var(--cyber-accent), var(--cyber-blue));
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+
+.chart-caption {
+    margin-top: 10px;
+    font-size: 0.8rem;
+    color: var(--cyber-text-dim);
+    line-height: 1.5;
+}
+
+/* Simulate buttons */
+.sim-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+}
+
+.sim-btn {
+    padding: 7px 15px;
+    border-radius: 8px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: 1px solid;
+    background: transparent;
+    transition: opacity 0.2s, transform 0.15s;
+}
+
+.sim-btn:hover  { opacity: 0.75; transform: translateY(-1px); }
+.sim-btn.valid   { border-color: var(--cyber-accent);  color: var(--cyber-accent); }
+.sim-btn.honey   { border-color: var(--cyber-yellow);  color: var(--cyber-yellow); }
+.sim-btn.invalid { border-color: var(--cyber-warning); color: var(--cyber-warning); }
+
+/* ────────────────────────────────────────────────────
+   Accounts Page
+   ──────────────────────────────────────────────────── */
+.page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+.page-title-area h2 {
+    font-size: 1.75rem;
+    font-weight: 800;
+    margin-bottom: 4px;
+}
+
+.page-title-area p {
+    color: var(--cyber-text-dim);
+    font-size: 0.86rem;
+}
+
+.back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 10px 18px;
+    background: transparent;
+    border: 1px solid var(--cyber-border);
+    color: var(--cyber-text-dim);
+    border-radius: 10px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: border-color 0.2s, color 0.2s, background 0.2s;
+    white-space: nowrap;
+}
+
+.back-btn:hover {
+    border-color: var(--cyber-accent);
+    color: var(--cyber-accent);
+    background: var(--cyber-glow);
+}
+
+/* Timer ring */
+.timer-ring {
+    position: relative;
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+}
+
+.timer-ring svg {
+    transform: rotate(-90deg);
+}
+
+.ring-bg {
+    fill: none;
+    stroke: var(--cyber-border);
+    stroke-width: 3;
+}
+
+.ring-progress {
+    fill: none;
+    stroke: var(--cyber-accent);
+    stroke-width: 3;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1s linear;
+    filter: drop-shadow(0 0 4px rgba(0, 255, 136, 0.5));
+}
+
+.ring-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: var(--cyber-text-dim);
+}
+
+/* Delete button */
+.delete-btn {
+    background: transparent;
+    border: 1px solid rgba(255, 107, 53, 0.25);
+    color: var(--cyber-warning);
+    border-radius: 8px;
+    width: 34px;
+    height: 34px;
+    font-size: 1.1rem;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.delete-btn:hover {
+    background: rgba(255, 107, 53, 0.1);
+    border-color: var(--cyber-warning);
+}
+
+.account-right {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-shrink: 0;
+}
+
+.account-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    font-size: 0.75rem;
+    color: var(--cyber-text-dim);
+    margin-top: 3px;
+}
+
+.hw-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--cyber-accent);
+    border: 1px solid rgba(0, 255, 136, 0.2);
+    border-radius: 4px;
+    padding: 1px 6px;
+    background: rgba(0, 255, 136, 0.05);
+}
+
+.add-account-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 15px;
+    margin-top: 22px;
+    background: linear-gradient(135deg, var(--cyber-accent), var(--cyber-blue));
+    color: #000;
+    border: none;
+    border-radius: 13px;
+    font-family: 'Manrope', sans-serif;
+    font-weight: 800;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    box-shadow: 0 0 20px rgba(0, 255, 136, 0.18);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.add-account-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 32px rgba(0, 255, 136, 0.38);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 56px 20px;
+    color: var(--cyber-text-dim);
+}
+
+.empty-state .empty-icon {
+    font-size: 2.8rem;
+    margin-bottom: 14px;
+    opacity: 0.35;
+}
+
+.empty-state p {
+    font-size: 0.92rem;
+    line-height: 1.6;
+}
+
+/* ────────────────────────────────────────────────────
+   Utility
+   ──────────────────────────────────────────────────── */
+.hidden { display: none !important; }
+
+/* ────────────────────────────────────────────────────
+   Custom Scrollbar
+   ──────────────────────────────────────────────────── */
+::-webkit-scrollbar       { width: 6px; }
+::-webkit-scrollbar-track { background: var(--cyber-bg); }
+::-webkit-scrollbar-thumb { background: var(--cyber-border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--cyber-accent-dim); }
+
+/* ────────────────────────────────────────────────────
+   Mobile Responsive
+   ──────────────────────────────────────────────────── */
+@media (max-width: 700px) {
+    .container    { padding: 24px 16px 40px; }
+    .card         { padding: 24px 20px; }
+    .logo         { font-size: 1.9rem; }
+    .stats-row    { grid-template-columns: repeat(2, 1fr); }
+    .otp-code     { font-size: 1.4rem; letter-spacing: 3px; }
+    .dashboard-hero  { flex-direction: column; align-items: flex-start; }
+    .btn-accounts    { width: 100%; justify-content: center; }
+    .page-header     { flex-direction: column; }
+    .back-btn        { align-self: flex-start; }
+    .form-actions    { flex-direction: column; }
+    .form-actions .btn { width: 100%; }
+}
+
+@media (max-width: 420px) {
+    .stats-row    { grid-template-columns: 1fr; }
+    .account-right { gap: 8px; }
+    .otp-code     { font-size: 1.2rem; }
+}

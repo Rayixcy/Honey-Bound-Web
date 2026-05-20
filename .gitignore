@@ -22,3 +22,8 @@ fyp/server/linked_devices.json
 # OS/editor noise
 .DS_Store
 Thumbs.db
+.vscode/
+**/.vscode/
+
+# Local nested-repo metadata backups
+**/.git-local-backup/

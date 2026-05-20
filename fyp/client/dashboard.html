@@ -1,0 +1,1812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard – HoneyBound-Web</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Manrope:wght@500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* ── User ID corner badge ── */
+    .user-id-corner {
+      position: fixed;
+      bottom: 22px;
+      left: 22px;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(10,14,26,0.92);
+      border: 1px solid var(--cyber-border);
+      border-radius: 10px;
+      padding: 8px 14px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--cyber-text-dim);
+      backdrop-filter: blur(10px);
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .user-id-corner:hover {
+      border-color: rgba(0,255,136,0.3);
+      color: var(--cyber-text);
+    }
+    .user-id-corner .uid-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--cyber-accent);
+      animation: pulse-dot 2s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+    .user-id-label {
+      color: var(--cyber-text-dim);
+      font-size: 0.65rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .user-id-value {
+      color: var(--cyber-accent);
+      font-weight: 600;
+      letter-spacing: 1.5px;
+    }
+
+    /* ── Profile button — fixed top-right ── */
+    .profile-btn {
+      position: fixed;
+      top: 22px;
+      right: 22px;
+      z-index: 100;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 9px 16px;
+      background: rgba(10,14,26,0.92);
+      border: 1px solid rgba(0,204,255,0.25);
+      border-radius: 10px;
+      color: var(--cyber-blue);
+      font-family: 'Manrope', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      transition: background 0.2s, border-color 0.2s, transform 0.15s;
+    }
+    .profile-btn:hover {
+      background: rgba(0,204,255,0.12);
+      border-color: rgba(0,204,255,0.5);
+      transform: translateY(-1px);
+    }
+
+    /* ── Profile modal ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(6px);
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s;
+    }
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .modal {
+      background: var(--cyber-surface);
+      border: 1px solid var(--cyber-border);
+      border-radius: 18px;
+      width: 100%;
+      max-width: 520px;
+      padding: 32px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+      transform: translateY(20px);
+      transition: transform 0.25s;
+      position: relative;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal-overlay.open .modal {
+      transform: translateY(0);
+    }
+    .modal-close {
+      position: absolute;
+      top: 18px; right: 18px;
+      background: transparent;
+      border: 1px solid var(--cyber-border);
+      color: var(--cyber-text-dim);
+      border-radius: 8px;
+      width: 32px; height: 32px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: 0.2s;
+    }
+    .modal-close:hover { border-color: var(--cyber-warning); color: var(--cyber-warning); }
+    .modal-title {
+      font-size: 1.3rem;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+    .modal-subtitle {
+      font-size: 0.8rem;
+      color: var(--cyber-text-dim);
+      margin-bottom: 28px;
+    }
+
+    /* ── Profile tabs ── */
+    .modal-tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--cyber-border-dim);
+      padding-bottom: 0;
+    }
+    .modal-tab {
+      padding: 9px 16px;
+      font-family: 'Manrope', sans-serif;
+      font-size: 0.76rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: var(--cyber-text-dim);
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .modal-tab.active {
+      color: var(--cyber-accent);
+      border-bottom-color: var(--cyber-accent);
+    }
+    .modal-tab:hover:not(.active) { color: var(--cyber-text); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Profile info ── */
+    .profile-avatar {
+      width: 64px; height: 64px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(0,255,136,0.15), rgba(0,204,255,0.15));
+      border: 2px solid var(--cyber-border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.8rem;
+      margin-bottom: 14px;
+    }
+    .profile-name {
+      font-size: 1.1rem;
+      font-weight: 800;
+      margin-bottom: 3px;
+    }
+    .profile-uid {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--cyber-text-dim);
+      margin-bottom: 20px;
+    }
+    .profile-stat-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 22px;
+    }
+    .profile-stat {
+      background: rgba(20,26,46,0.6);
+      border: 1px solid var(--cyber-border-dim);
+      border-radius: 10px;
+      padding: 12px;
+      text-align: center;
+    }
+    .profile-stat-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--cyber-accent);
+    }
+    .profile-stat-lbl {
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--cyber-text-dim);
+      margin-top: 4px;
+    }
+
+    /* ── Settings items ── */
+    .settings-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--cyber-border-dim);
+      gap: 12px;
+    }
+    .settings-item:last-child { border-bottom: none; }
+    .settings-item-info h4 {
+      font-size: 0.9rem;
+      font-weight: 700;
+      margin-bottom: 3px;
+    }
+    .settings-item-info p {
+      font-size: 0.75rem;
+      color: var(--cyber-text-dim);
+      line-height: 1.4;
+    }
+    .settings-action-btn {
+      flex-shrink: 0;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-family: 'Manrope', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      cursor: pointer;
+      border: 1px solid;
+      background: transparent;
+      transition: 0.2s;
+      white-space: nowrap;
+    }
+    .settings-action-btn.green {
+      border-color: var(--cyber-accent);
+      color: var(--cyber-accent);
+    }
+    .settings-action-btn.green:hover {
+      background: rgba(0,255,136,0.08);
+    }
+    .settings-action-btn.blue {
+      border-color: var(--cyber-blue);
+      color: var(--cyber-blue);
+    }
+    .settings-action-btn.blue:hover {
+      background: rgba(0,204,255,0.08);
+    }
+    .settings-action-btn.red {
+      border-color: #ff4d6a;
+      color: #ff4d6a;
+    }
+    .settings-action-btn.red:hover {
+      background: rgba(255,77,106,0.08);
+    }
+
+    /* ── QR scanner area ── */
+    .qr-area {
+      background: rgba(10,14,26,0.8);
+      border: 1px dashed var(--cyber-border);
+      border-radius: 12px;
+      padding: 28px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s;
+      margin-bottom: 18px;
+    }
+    .qr-area:hover {
+      border-color: var(--cyber-accent);
+    }
+    .qr-icon {
+      font-size: 2.8rem;
+      margin-bottom: 10px;
+      opacity: 0.6;
+    }
+    .qr-area p {
+      font-size: 0.82rem;
+      color: var(--cyber-text-dim);
+      line-height: 1.5;
+    }
+    .qr-area p strong {
+      color: var(--cyber-text);
+      display: block;
+      margin-bottom: 4px;
+    }
+    #qrVideoContainer {
+      display: none;
+      position: relative;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 14px;
+    }
+    #qrVideoContainer video {
+      width: 100%;
+      border-radius: 10px;
+      display: block;
+    }
+    .qr-scan-line {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--cyber-accent), transparent);
+      animation: scanLine 2s linear infinite;
+    }
+    @keyframes scanLine {
+      0%   { top: 0%; }
+      100% { top: 100%; }
+    }
+    .qr-result {
+      display: none;
+      background: rgba(0,255,136,0.05);
+      border: 1px solid rgba(0,255,136,0.2);
+      border-radius: 10px;
+      padding: 14px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--cyber-accent);
+      word-break: break-all;
+      margin-bottom: 14px;
+    }
+
+    /* ── Link device section ── */
+    .link-device-code {
+      background: rgba(10,14,26,0.8);
+      border: 1px solid var(--cyber-border);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    .link-device-code .code-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: 8px;
+      color: var(--cyber-blue);
+      text-shadow: 0 0 16px rgba(0,204,255,0.3);
+      margin-bottom: 8px;
+    }
+    .link-device-code p {
+      font-size: 0.75rem;
+      color: var(--cyber-text-dim);
+    }
+    .linked-devices-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 16px;
+    }
+    .linked-device-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(20,26,46,0.6);
+      border: 1px solid var(--cyber-border-dim);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+    .linked-device-item .dev-info { display: flex; align-items: center; gap: 10px; }
+    .linked-device-item .dev-icon { font-size: 1.3rem; }
+    .linked-device-item .dev-name { font-size: 0.85rem; font-weight: 700; }
+    .linked-device-item .dev-meta { font-size: 0.7rem; color: var(--cyber-text-dim); }
+    .device-active { width: 7px; height: 7px; border-radius: 50%; background: var(--cyber-accent); flex-shrink: 0; }
+
+    /* ── toggle switch ── */
+    .toggle-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .toggle {
+      position: relative;
+      width: 38px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute;
+      inset: 0;
+      background: var(--cyber-border);
+      border-radius: 20px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .toggle-slider::before {
+      content: '';
+      position: absolute;
+      height: 14px; width: 14px;
+      left: 3px; top: 3px;
+      background: var(--cyber-text-dim);
+      border-radius: 50%;
+      transition: 0.3s;
+    }
+    .toggle input:checked + .toggle-slider { background: var(--cyber-accent); }
+    .toggle input:checked + .toggle-slider::before {
+      transform: translateX(18px);
+      background: #000;
+    }
+    .toggle-label {
+      font-size: 0.75rem;
+      color: var(--cyber-text-dim);
+    }
+
+    /* ── Charts layout ── */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.6fr;
+      gap: 28px;
+      align-items: start;
+    }
+    @media (max-width: 780px) { .charts-grid { grid-template-columns: 1fr; } }
+
+    .chart-card {
+      background: rgba(16, 22, 40, 0.7);
+      border: 1px solid var(--cyber-border-dim);
+      border-radius: 14px;
+      padding: 24px 22px;
+    }
+    .chart-card-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--cyber-text);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+    .chart-card-title::before {
+      content: '';
+      display: inline-block;
+      width: 3px;
+      height: 14px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+    .chart-card-title.green::before { background: linear-gradient(180deg, #00ff88, #00cc6a); }
+    .chart-card-title.blue::before  { background: linear-gradient(180deg, #00ccff, #0099cc); }
+    .chart-card-sub {
+      font-size: 0.75rem;
+      color: var(--cyber-text-dim);
+      margin-bottom: 18px;
+      line-height: 1.5;
+    }
+    .pie-wrapper {
+      width: min(100%, 260px);
+      margin: 0 auto;
+      aspect-ratio: 1 / 1;
+      position: relative;
+    }
+    .pie-wrapper canvas {
+      width: 100% !important;
+      height: 100% !important;
+      display: block;
+    }
+    .line-chart-wrapper {
+      position: relative;
+      width: 100%;
+      min-height: 240px;
+      height: clamp(240px, 34vw, 320px);
+    }
+    .line-chart-wrapper canvas {
+      width: 100% !important;
+      height: 100% !important;
+      display: block;
+    }
+    .perf-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      border: 1px solid rgba(0,204,255,0.3);
+      color: var(--cyber-blue);
+      background: rgba(0,204,255,0.06);
+      margin-bottom: 14px;
+    }
+    .perf-badge::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--cyber-blue);
+    }
+
+    /* ── Honey Alert Panel ── */
+    .honey-panel {
+      background: rgba(16,22,40,0.7);
+      border: 1px solid var(--cyber-border-dim);
+      border-radius: 14px;
+      padding: 24px 22px;
+      margin-top: 28px;
+    }
+    .honey-panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .honey-panel-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--cyber-text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .honey-panel-title::before {
+      content: '';
+      display: inline-block;
+      width: 3px;
+      height: 14px;
+      border-radius: 2px;
+      background: linear-gradient(180deg, var(--cyber-yellow), #ffaa00);
+      flex-shrink: 0;
+    }
+
+    /* Verify form */
+    .verify-form {
+      display: flex;
+      gap: 10px;
+      align-items: stretch;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+    .verify-select {
+      flex: 1;
+      min-width: 140px;
+      background: rgba(10,14,26,0.85);
+      border: 1px solid var(--cyber-border);
+      border-radius: 10px;
+      color: var(--cyber-text);
+      font-family: 'Manrope', sans-serif;
+      font-size: 0.85rem;
+      padding: 10px 14px;
+    }
+    .verify-input {
+      flex: 1.2;
+      min-width: 140px;
+      background: rgba(10,14,26,0.85);
+      border: 1px solid var(--cyber-border);
+      border-radius: 10px;
+      color: var(--cyber-text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1rem;
+      letter-spacing: 4px;
+      padding: 10px 14px;
+      text-align: center;
+    }
+    .verify-input:focus, .verify-select:focus {
+      outline: none;
+      border-color: var(--cyber-accent);
+      box-shadow: 0 0 0 2px rgba(0,255,136,0.1);
+    }
+    .verify-btn {
+      padding: 10px 20px;
+      background: linear-gradient(135deg, rgba(0,255,136,0.15), rgba(0,204,255,0.1));
+      border: 1px solid rgba(0,255,136,0.4);
+      color: var(--cyber-accent);
+      border-radius: 10px;
+      font-family: 'Manrope', sans-serif;
+      font-weight: 700;
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: 0.2s;
+      white-space: nowrap;
+    }
+    .verify-btn:hover {
+      background: rgba(0,255,136,0.2);
+      box-shadow: 0 0 12px rgba(0,255,136,0.2);
+    }
+
+    /* Result banner */
+    .verify-result {
+      display: none;
+      padding: 14px 18px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      margin-bottom: 18px;
+      line-height: 1.5;
+      animation: fadeSlideIn 0.3s ease;
+    }
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .verify-result.success {
+      background: rgba(0,255,136,0.08);
+      border: 1px solid rgba(0,255,136,0.3);
+      color: var(--cyber-accent);
+    }
+    .verify-result.invalid {
+      background: rgba(255,77,106,0.08);
+      border: 1px solid rgba(255,77,106,0.3);
+      color: #ff4d6a;
+    }
+    .verify-result.honeytrap {
+      background: rgba(255,204,0,0.08);
+      border: 1px solid rgba(255,204,0,0.4);
+      color: var(--cyber-yellow);
+      box-shadow: 0 0 20px rgba(255,204,0,0.12);
+    }
+
+    /* Alert feed */
+    .alert-feed {
+      display: grid;
+      gap: 8px;
+      max-height: 260px;
+      overflow-y: auto;
+    }
+    .alert-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 11px 14px;
+      border-radius: 10px;
+      border: 1px solid;
+      font-size: 0.78rem;
+      animation: fadeSlideIn 0.25s ease;
+    }
+    .alert-item.success {
+      background: rgba(0,255,136,0.05);
+      border-color: rgba(0,255,136,0.15);
+    }
+    .alert-item.invalid {
+      background: rgba(255,77,106,0.05);
+      border-color: rgba(255,77,106,0.15);
+    }
+    .alert-item.honeytrap {
+      background: rgba(255,204,0,0.07);
+      border-color: rgba(255,204,0,0.3);
+    }
+    .alert-item.info {
+      background: rgba(0,204,255,0.04);
+      border-color: rgba(0,204,255,0.12);
+    }
+    .alert-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+    .alert-body { flex: 1; }
+    .alert-title { font-weight: 700; color: var(--cyber-text); margin-bottom: 2px; }
+    .alert-meta  { color: var(--cyber-text-dim); font-size: 0.72rem; }
+
+    .no-alerts {
+      text-align: center;
+      padding: 32px 20px;
+      color: var(--cyber-text-dim);
+      font-size: 0.82rem;
+    }
+
+    /* Honeytrap counter badge */
+    .honeytrap-counter {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      background: rgba(255,204,0,0.1);
+      border: 1px solid rgba(255,204,0,0.3);
+      color: var(--cyber-yellow);
+    }
+    .honeytrap-counter.danger {
+      background: rgba(255,77,106,0.12);
+      border-color: rgba(255,77,106,0.4);
+      color: #ff4d6a;
+      animation: pulse-border 1.5s ease-in-out infinite;
+    }
+    @keyframes pulse-border {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(255,77,106,0); }
+      50%       { box-shadow: 0 0 0 4px rgba(255,77,106,0.15); }
+    }
+
+    /* live indicator */
+    .live-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--cyber-accent);
+      background: rgba(0,255,136,0.07);
+      border: 1px solid rgba(0,255,136,0.2);
+      border-radius: 20px;
+      padding: 3px 9px;
+      margin-left: auto;
+    }
+    .live-pill::before {
+      content: '';
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--cyber-accent);
+      animation: pulse-dot 1.5s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── User ID corner badge ── -->
+<div class="user-id-corner" onclick="openProfile()" title="Open Profile">
+  <span class="uid-dot"></span>
+  <span class="user-id-label">User ID</span>
+  <span class="user-id-value" id="cornerUserId">loading…</span>
+</div>
+
+<!-- ── Profile Modal ── -->
+<div class="modal-overlay" id="profileModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeProfile()">×</button>
+    <div class="modal-title">Profile & Settings</div>
+    <div class="modal-subtitle">Manage your HoneyBound-Web identity and devices</div>
+
+    <div class="modal-tabs">
+      <button class="modal-tab active" onclick="switchTab('profile', this)">Profile</button>
+      <button class="modal-tab" onclick="switchTab('devices', this)">Link Device</button>
+      <button class="modal-tab" onclick="switchTab('settings', this)">Settings</button>
+    </div>
+
+    <!-- TAB: Profile -->
+    <div class="tab-panel active" id="tab-profile">
+      <div class="profile-avatar"></div>
+      <div class="profile-name">Local Device User</div>
+      <div class="profile-uid" id="modalUserId">UID: loading…</div>
+      <div class="profile-stat-row">
+        <div class="profile-stat">
+          <div class="profile-stat-val" id="pStatAccounts">—</div>
+          <div class="profile-stat-lbl">Accounts</div>
+        </div>
+        <div class="profile-stat">
+          <div class="profile-stat-val" id="pStatSuccess">—</div>
+          <div class="profile-stat-lbl">OTP Success</div>
+        </div>
+        <div class="profile-stat">
+          <div class="profile-stat-val" id="pStatDevices">1</div>
+          <div class="profile-stat-lbl">Devices</div>
+        </div>
+      </div>
+      <div style="font-size:0.75rem; color: var(--cyber-text-dim); line-height: 1.7; background: rgba(0,255,136,0.04); border: 1px solid rgba(0,255,136,0.1); border-radius: 10px; padding: 14px;">
+         <strong style="color:var(--cyber-text)">Hardware-Bound Security Active</strong><br/>
+        Account secrets are encrypted locally and unlocked through your device credential flow.<br/>
+        PRF-backed protection is used when supported by your browser and authenticator.
+      </div>
+    </div>
+
+    <!-- TAB: Link Device -->
+    <div class="tab-panel" id="tab-devices">
+
+      <p style="font-size:0.8rem; color:var(--cyber-text-dim); margin-bottom:18px; line-height:1.6;">
+        Scan this QR code with your phone camera while both devices are on the same Wi-Fi. The code refreshes every 30 seconds.
+      </p>
+
+      <!-- QR code + countdown -->
+      <div style="display:flex; flex-direction:column; align-items:center; gap:16px; margin-bottom:22px;">
+
+        <div style="position:relative; padding:16px; background:#ffffff; border:3px solid rgba(0,204,255,0.5); border-radius:16px; box-shadow:0 0 32px rgba(0,204,255,0.2);">
+        <!-- qrcodejs renders a canvas+img into this div -->
+        <!-- NOTE: background MUST be white, NO border-radius/overflow:hidden —
+             clipping destroys the QR finder-pattern corners that cameras use. -->
+          <div id="linkDeviceQRDiv"
+               style="width:200px; height:200px; display:block; background:#ffffff; overflow:hidden; line-height:0; font-size:0;">
+          </div>
+          <!-- qrcodejs injects both a canvas AND an img — hide canvas, show only img -->
+          <style>
+            #linkDeviceQRDiv canvas { display:none !important; }
+            #linkDeviceQRDiv img { display:block !important; width:200px !important; height:200px !important; border-radius:0 !important; margin:0 !important; }
+          </style>
+          <!-- animated corner brackets -->
+          <span style="position:absolute;top:8px;left:8px;width:18px;height:18px;border-top:2px solid var(--cyber-blue);border-left:2px solid var(--cyber-blue);border-radius:2px 0 0 0;opacity:0.7;"></span>
+          <span style="position:absolute;top:8px;right:8px;width:18px;height:18px;border-top:2px solid var(--cyber-blue);border-right:2px solid var(--cyber-blue);border-radius:0 2px 0 0;opacity:0.7;"></span>
+          <span style="position:absolute;bottom:8px;left:8px;width:18px;height:18px;border-bottom:2px solid var(--cyber-blue);border-left:2px solid var(--cyber-blue);border-radius:0 0 0 2px;opacity:0.7;"></span>
+          <span style="position:absolute;bottom:8px;right:8px;width:18px;height:18px;border-bottom:2px solid var(--cyber-blue);border-right:2px solid var(--cyber-blue);border-radius:0 0 2px 0;opacity:0.7;"></span>
+        </div>
+
+        <!-- countdown ring -->
+        <div style="display:flex; align-items:center; gap:12px;">
+          <div style="position:relative; width:44px; height:44px;">
+            <svg width="44" height="44" viewBox="0 0 44 44" style="transform:rotate(-90deg);">
+              <circle cx="22" cy="22" r="18" fill="none" stroke="var(--cyber-border)" stroke-width="3"/>
+              <circle id="linkDeviceRing" cx="22" cy="22" r="18" fill="none"
+                stroke="var(--cyber-blue)" stroke-width="3" stroke-linecap="round"
+                stroke-dasharray="113.1" stroke-dashoffset="0"
+                style="transition: stroke-dashoffset 1s linear, stroke 0.3s;"/>
+            </svg>
+            <span id="linkDeviceCountdown" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'JetBrains Mono',monospace;font-size:0.65rem;font-weight:700;color:var(--cyber-text);">30s</span>
+          </div>
+          <div>
+            <div style="font-size:0.72rem;color:var(--cyber-text);font-weight:700;">Auto-refreshing</div>
+            <div style="font-size:0.68rem;color:var(--cyber-text-dim);">New code every 30 seconds</div>
+          </div>
+        </div>
+      </div>
+
+      <button class="settings-action-btn blue" style="width:100%;justify-content:center;padding:11px;font-size:0.78rem;margin-bottom:24px;" onclick="regenerateLinkQR()">
+        ↻ Generate New Code Now
+      </button>
+
+      <button class="settings-action-btn green" style="width:100%;justify-content:center;padding:11px;font-size:0.78rem;margin-bottom:14px;" onclick="prepareAccountsForPhoneSync()">
+        Prepare Accounts For Phone 
+      </button>
+
+      <div id="preparePhoneSyncStatus" style="font-size:0.74rem;color:var(--cyber-text-dim);margin-bottom:24px;line-height:1.6;">
+        Use this once on the laptop if the phone says no synced account bundle is available yet.
+      </div>
+
+      <!-- sample -->
+
+      <!-- Linked devices -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--cyber-text-dim);">Linked Devices</div>
+        <div id="linkedDeviceCount" style="font-size:0.68rem;font-family:'JetBrains Mono',monospace;color:var(--cyber-accent);"></div>
+      </div>
+      <div class="linked-devices-list" id="linkedDevicesList">
+        <!-- Rendered by renderLinkedDevices() -->
+      </div>
+    </div>
+
+    <!-- TAB: Settings -->
+    <div class="tab-panel" id="tab-settings">
+      <div class="settings-item">
+        <div class="settings-item-info">
+          <h4>Biometric Unlock</h4>
+          <p>Require fingerprint or Face ID for every OTP generation</p>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" checked id="toggleBiometric"/>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="settings-item">
+        <div class="settings-item-info">
+          <h4>Auto-copy OTP</h4>
+          <p>Copy generated code to clipboard automatically</p>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="toggleAutoCopy"/>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="settings-item">
+        <div class="settings-item-info">
+          <h4>Dashboard Live Graphs</h4>
+          <p>Stream real-time OTP and derivation metrics</p>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" checked id="toggleLiveGraphs"/>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="settings-item">
+        <div class="settings-item-info">
+          <h4>Export Account List</h4>
+          <p>Download account metadata only. Device-bound secrets stay on this device.</p>
+        </div>
+        <button class="settings-action-btn blue" onclick="exportBackup()">Export</button>
+      </div>
+      <div class="settings-item">
+        <div class="settings-item-info">
+          <h4>Reset Authenticator</h4>
+          <p>Clear all accounts and WebAuthn credentials from this device</p>
+        </div>
+        <button class="settings-action-btn red" onclick="confirmReset()">Reset</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Profile button fixed top-right ── -->
+<button class="profile-btn" onclick="openProfile()">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14">
+    <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+  </svg>
+  Profile & Settings
+</button>
+
+<!-- ══════════════════════════════════════════════════════ -->
+
+<div class="container">
+  <div class="header">
+    <div class="logo">HoneyBound-Web</div>
+    <div class="tagline">Security Dashboard</div>
+  </div>
+
+  <div class="card">
+    <!-- ── Hero row ── -->
+    <div class="dashboard-hero">
+      <div class="dashboard-hero-text">
+        <h2>Security Insights</h2>
+        <p>OTP reliability, derivation performance &amp; hardware-binding metrics</p>
+      </div>
+      <button class="btn-accounts" onclick="location.href='accounts.html'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="17" height="17">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        My Accounts
+      </button>
+    </div>
+
+    <!-- ── Stats row ── -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-value" id="statAccounts">—</div>
+        <div class="stat-label">Accounts Protected</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="statSuccessRate">—</div>
+        <div class="stat-label">OTP Success Rate</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="statDerivAvg">—</div>
+        <div class="stat-label">Avg Derivation Time</div>
+      </div>
+    </div>
+
+    <!-- ── Charts grid ── -->
+    <div class="charts-grid">
+
+      <!-- CHART 1 — OTP Success / Failure Rate -->
+      <div class="chart-card">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+          <div class="chart-card-title green" style="margin-bottom:0;">OTP Success Rate</div>
+          <span class="live-pill">Live</span>
+        </div>
+        <p class="chart-card-sub">
+          Real-time tracking of every generation attempt — successes, errors, and cancellations.
+        </p>
+        <div class="pie-wrapper">
+          <canvas id="otpSuccessChart"></canvas>
+        </div>
+      </div>
+
+      <!-- CHART 2 — Derivation Time -->
+      <div class="chart-card">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+          <div class="chart-card-title blue" style="margin-bottom:0;">Derivation Latency</div>
+          <span class="live-pill">Live</span>
+        </div>
+        <p class="chart-card-sub">
+          PBKDF2 + WebAuthn derivation latency per attempt. Red dashed = 300 ms target. Cyan = real, grey = simulated background activity.
+        </p>
+        <button onclick="exportEvaluationReport()" style="
+          margin-bottom:12px;
+          padding:8px 12px;
+          background:transparent;
+          border:1px solid rgba(0,204,255,0.28);
+          color:var(--cyber-blue);
+          border-radius:8px;
+          font-family:'Manrope',sans-serif;
+          font-size:0.72rem;
+          font-weight:700;
+          text-transform:uppercase;
+          letter-spacing:0.5px;
+          cursor:pointer;
+          transition:0.2s;
+        ">Export Evaluation Report</button>
+        <div class="perf-badge" id="derivPerfBadge">Awaiting first attempt…</div>
+        <div class="line-chart-wrapper">
+          <canvas id="derivTimeChart"></canvas>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         NOTIFICATION CENTER — Real-time event feed
+    ══════════════════════════════════════════════════════ -->
+    <div class="honey-panel">
+      <div class="honey-panel-header">
+        <div class="honey-panel-title"> Notification Center</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="honeytrap-counter" id="honeyCounter">0 alerts</span>
+          <span class="live-pill">Live</span>
+        </div>
+      </div>
+
+      <div id="alertFeed" class="alert-feed">
+        <div class="no-alerts" id="noAlertsMsg">
+          <div style="font-size:2rem;margin-bottom:10px;opacity:0.3;"></div>
+          No events yet — notifications will appear here in real time.
+        </div>
+      </div>
+
+      <!-- View All button -->
+      <button onclick="location.href='events.html'" style="
+        display:flex;align-items:center;justify-content:center;gap:8px;
+        width:100%;margin-top:16px;padding:12px;
+        background:transparent;
+        border:1px solid var(--cyber-border);
+        color:var(--cyber-text-dim);
+        border-radius:10px;
+        font-family:'Manrope',sans-serif;font-size:0.82rem;font-weight:700;
+        text-transform:uppercase;letter-spacing:0.6px;
+        cursor:pointer;transition:0.2s;">
+        View All Events →
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="config.js"></script>
+<script src="honey.js"></script>
+<script src="sync.js"></script>
+<script src="graph.js"></script>
+<script src="qr.js"></script>
+<script src="main.js"></script>
+<script>
+  /* ════════════════════════════════════════════
+     USER ID — derive short ID from credential
+  ════════════════════════════════════════════ */
+  function getUserId() {
+    let uid = localStorage.getItem('hbw_user_id_v1');
+    if (!uid) {
+      const cred = localStorage.getItem('hbw_webauthn_cred_id_v1') || '';
+      if (cred.length > 6) {
+        uid = cred.replace(/[^a-zA-Z0-9]/g, '').substring(0, 8).toUpperCase();
+      } else {
+        uid = Math.random().toString(36).substring(2,10).toUpperCase();
+      }
+      localStorage.setItem('hbw_user_id_v1', uid);
+    }
+    return uid;
+  }
+
+  function renderUserId() {
+    const uid = getUserId();
+    const corner = document.getElementById('cornerUserId');
+    const modal  = document.getElementById('modalUserId');
+    if (corner) corner.textContent = uid;
+    if (modal)  modal.textContent  = 'UID: ' + uid;
+  }
+
+  /* ════════════════════════════════════════════
+     PROFILE MODAL
+  ════════════════════════════════════════════ */
+  function openProfile() {
+    document.getElementById('profileModal').classList.add('open');
+    const accs = JSON.parse(localStorage.getItem('hbw_accounts_v1') || '[]');
+    const el = document.getElementById('pStatAccounts');
+    if (el) el.textContent = accs.length;
+    const sr  = document.getElementById('statSuccessRate');
+    const psr = document.getElementById('pStatSuccess');
+    if (sr && psr) psr.textContent = sr.textContent !== '—' ? sr.textContent : '100%';
+    // Pre-populate devices count on profile tab
+    const devices = getLinkedDevices();
+    const pDev = document.getElementById('pStatDevices');
+    if (pDev) pDev.textContent = devices.length;
+    syncLinkedDevicesFromServer();
+  }
+  function closeProfile() {
+    document.getElementById('profileModal').classList.remove('open');
+    stopLinkPolling();
+    stopLinkQR();
+  }
+
+  /* ════════════════════════════════════════════
+     LINKED DEVICES — read/write from localStorage
+  ════════════════════════════════════════════ */
+  const DEVICES_KEY = 'hbw_linked_devices_v1';
+  let linkPollTimer = null;
+
+  function makePrimaryDevice() {
+    return {
+      id: 'primary',
+      primary: true,
+      icon: '💻',
+      name: 'This Device',
+      type: 'Desktop / Laptop',
+      linkedAt: new Date().toISOString(),
+      active: true
+    };
+  }
+
+  function ensurePrimaryDevice(devices) {
+    const list = Array.isArray(devices) ? devices.slice() : [];
+    if (!list.find(d => d && d.primary)) {
+      list.unshift(makePrimaryDevice());
+    }
+    return list;
+  }
+
+  function getLinkedDevices() {
+    try {
+      const stored = JSON.parse(localStorage.getItem(DEVICES_KEY) || '[]');
+      // Always ensure "This Device" primary entry exists
+      if (!stored.find(d => d.primary)) {
+        stored.unshift({
+          id: 'primary',
+          primary: true,
+          icon: '💻',
+          name: 'This Device',
+          type: 'Desktop / Laptop',
+          linkedAt: new Date().toISOString(),
+          active: true
+        });
+        localStorage.setItem(DEVICES_KEY, JSON.stringify(stored));
+      }
+      return stored;
+    } catch { return []; }
+  }
+
+  function removeLinkedDevice(id) {
+    const devices = getLinkedDevices().filter(d => d.id !== id);
+    localStorage.setItem(DEVICES_KEY, JSON.stringify(devices));
+    renderLinkedDevices();
+    // Update profile stat
+    const pDev = document.getElementById('pStatDevices');
+    if (pDev) pDev.textContent = devices.length;
+  }
+
+  function mergeLinkedDevice(device) {
+    if (!device || !device.id) return;
+    const devices = getLinkedDevices().filter(d => d.id !== device.id);
+    devices.push(device);
+    localStorage.setItem(DEVICES_KEY, JSON.stringify(devices));
+    renderLinkedDevices();
+  }
+
+  function makePrimaryDevice() {
+    return {
+      id: 'primary',
+      primary: true,
+      icon: '💻',
+      name: 'This Device',
+      type: 'Desktop / Laptop',
+      linkedAt: new Date().toISOString(),
+      active: true
+    };
+  }
+
+  function ensurePrimaryDevice(devices) {
+    const list = Array.isArray(devices) ? devices.slice() : [];
+    if (!list.find(d => d && d.primary)) list.unshift(makePrimaryDevice());
+    return list;
+  }
+
+  getLinkedDevices = function() {
+    try {
+      const stored = JSON.parse(localStorage.getItem(DEVICES_KEY) || '[]');
+      const normalized = ensurePrimaryDevice(stored);
+      localStorage.setItem(DEVICES_KEY, JSON.stringify(normalized));
+      return normalized;
+    } catch {
+      return ensurePrimaryDevice([]);
+    }
+  };
+
+  async function syncLinkedDevicesFromServer() {
+    const uid = localStorage.getItem('hbw_user_id_v1') || '';
+    if (!uid) return getLinkedDevices();
+
+    try {
+      const res = await fetch('/api/honey/link-device/devices/' + encodeURIComponent(uid));
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !Array.isArray(data.devices)) {
+        throw new Error(data.error || 'Could not load linked devices');
+      }
+      const devices = ensurePrimaryDevice(data.devices);
+      localStorage.setItem(DEVICES_KEY, JSON.stringify(devices));
+      renderLinkedDevices();
+      return devices;
+    } catch (err) {
+      console.warn('[honey] Could not sync linked devices:', err);
+      return getLinkedDevices();
+    }
+  }
+
+  removeLinkedDevice = async function(id) {
+    const uid = localStorage.getItem('hbw_user_id_v1') || '';
+    if (!id || id === 'primary') return;
+
+    try {
+      if (uid) {
+        const res = await fetch(
+          '/api/honey/link-device/devices/' + encodeURIComponent(uid) + '/' + encodeURIComponent(id),
+          { method: 'DELETE' }
+        );
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !Array.isArray(data.devices)) {
+          throw new Error(data.error || 'Could not unlink device');
+        }
+        localStorage.setItem(DEVICES_KEY, JSON.stringify(ensurePrimaryDevice(data.devices)));
+      } else {
+        const devices = getLinkedDevices().filter(d => d.id !== id);
+        localStorage.setItem(DEVICES_KEY, JSON.stringify(devices));
+      }
+    } catch (err) {
+      console.warn('[honey] Could not remove linked device:', err);
+    }
+
+    renderLinkedDevices();
+    const devices = getLinkedDevices();
+    const pDev = document.getElementById('pStatDevices');
+    if (pDev) pDev.textContent = devices.length;
+  };
+
+  mergeLinkedDevice = function(device) {
+    if (!device || !device.id) return;
+    const devices = getLinkedDevices().filter(d => d.id !== device.id);
+    devices.push(device);
+    localStorage.setItem(DEVICES_KEY, JSON.stringify(ensurePrimaryDevice(devices)));
+    renderLinkedDevices();
+  };
+
+  let linkProvisionCache = null;
+  const LINK_PROVISION_CACHE_KEY = 'hbw_link_provision_cache_v1';
+
+  function loadLinkProvisionCache() {
+    if (linkProvisionCache) return linkProvisionCache;
+    try {
+      const cached = JSON.parse(sessionStorage.getItem(LINK_PROVISION_CACHE_KEY) || 'null');
+      if (cached && cached.cacheKey && Array.isArray(cached.bundle)) {
+        linkProvisionCache = cached;
+      }
+    } catch (err) {}
+    return linkProvisionCache;
+  }
+
+  function saveLinkProvisionCache(cache) {
+    linkProvisionCache = cache || null;
+    try {
+      if (!cache) {
+        sessionStorage.removeItem(LINK_PROVISION_CACHE_KEY);
+      } else {
+        sessionStorage.setItem(LINK_PROVISION_CACHE_KEY, JSON.stringify(cache));
+      }
+    } catch (err) {}
+  }
+
+  async function provisionLinkedDeviceAccounts(token) {
+    if (!token || !window.Honey) return 0;
+
+    const uid = localStorage.getItem('hbw_user_id_v1') || '';
+    const storedAccounts = JSON.parse(localStorage.getItem('hbw_accounts_v1') || '[]');
+    if (!uid || !storedAccounts.length) return 0;
+
+    let bundle = [];
+    const cacheKey = JSON.stringify(storedAccounts.map(account => ({
+      id: account.id,
+      serviceName: account.serviceName,
+      digits: account.digits || 6,
+      period: account.period || 30
+    })));
+
+    const cached = loadLinkProvisionCache();
+    if (cached && cached.cacheKey === cacheKey) {
+      bundle = cached.bundle.slice();
+    } else {
+      const assertion = await window.Honey.assertWithPRF('encryption');
+      for (const account of storedAccounts) {
+        try {
+          const secret = await window.Honey._getDecryptedSecret(account.id, assertion);
+          if (!secret) continue;
+          bundle.push({
+            id: account.id,
+            serviceName: account.serviceName,
+            secret: secret,
+            digits: account.digits || 6,
+            period: account.period || 30
+          });
+        } catch (err) {
+          console.warn('[honey] Could not prepare account for linked device:', account.id, err && err.message ? err.message : err);
+        }
+      }
+
+      saveLinkProvisionCache({
+        cacheKey: cacheKey,
+        bundle: bundle.slice()
+      });
+    }
+
+    if (window.HoneySync && bundle.length) {
+      window.HoneySync.replaceCachedAccounts(bundle);
+    }
+
+    const res = await fetch('/api/honey/link-device/provision/' + encodeURIComponent(token), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uid: uid, accounts: bundle })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(data.error || 'Could not provision linked device accounts');
+    }
+    return Number(data.provisionedAccountCount || bundle.length || 0);
+  }
+
+  function setLinkDeviceMessage(status, hint) {
+    const statusEl = document.getElementById('linkDeviceStatus');
+    const hintEl = document.getElementById('linkDeviceHint');
+    if (statusEl) statusEl.textContent = status || 'Waiting for a device...';
+    if (hintEl) hintEl.textContent = hint || '';
+  }
+
+  function setPreparePhoneSyncStatus(message, kind) {
+    const el = document.getElementById('preparePhoneSyncStatus');
+    if (!el) return;
+    el.textContent = message || '';
+    el.style.color =
+      kind === 'error' ? '#ff4d6a' :
+      kind === 'ok' ? 'var(--cyber-accent)' :
+      'var(--cyber-text-dim)';
+  }
+
+  function stopLinkPolling() {
+    clearInterval(linkPollTimer);
+    linkPollTimer = null;
+  }
+
+  function startLinkPolling(token) {
+    stopLinkPolling();
+    if (!token) return;
+
+    linkPollTimer = setInterval(async function () {
+      try {
+        const res = await fetch('/api/honey/link-device/session/' + encodeURIComponent(token));
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.session) {
+          if (res.status === 404) {
+            setLinkDeviceMessage('Link code expired', 'Generate a new code and scan it again from the other device.');
+            stopLinkPolling();
+          }
+          return;
+        }
+
+        const session = data.session;
+        if (session.status === 'linked' && session.device) {
+          mergeLinkedDevice(session.device);
+          syncLinkedDevicesFromServer();
+          setLinkDeviceMessage(
+            'Linked: ' + session.device.name,
+            'This dashboard has recorded the new device successfully.'
+          );
+          stopLinkPolling();
+        }
+      } catch (err) {
+        console.warn('[honey] Could not poll link session:', err);
+      }
+    }, 2000);
+  }
+
+  window.onHoneyLinkSession = function(session) {
+    if (!session) return;
+    const expires = session.expiresAt
+      ? new Date(session.expiresAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+      : 'soon';
+    setLinkDeviceMessage(
+      'Scan ready on: ' + (session.linkUrl || ''),
+      'This code expires at ' + expires + '. If the page opens on a phone, tap "Link this device".'
+    );
+    startLinkPolling(session.token);
+  };
+
+  window.onHoneyLinkError = function(message) {
+    setLinkDeviceMessage('Link code unavailable', message || 'Could not create the device-link QR.');
+    stopLinkPolling();
+  };
+
+  function renderLinkedDevices() {
+    const list  = document.getElementById('linkedDevicesList');
+    const count = document.getElementById('linkedDeviceCount');
+    if (!list) return;
+
+    const devices = getLinkedDevices();
+    if (count) count.textContent = devices.length + ' device' + (devices.length !== 1 ? 's' : '');
+
+    // Update profile tab stat
+    const pDev = document.getElementById('pStatDevices');
+    if (pDev) pDev.textContent = devices.length;
+
+    list.innerHTML = '';
+    devices.forEach(d => {
+      const linkedDate = d.linkedAt
+        ? new Date(d.linkedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+        : 'Unknown';
+
+      const item = document.createElement('div');
+      item.className = 'linked-device-item';
+      item.innerHTML = `
+        <div class="dev-info">
+          <span class="dev-icon">${d.icon || '📱'}</span>
+          <div>
+            <div class="dev-name">${d.name}</div>
+            <div class="dev-meta">${d.primary ? 'Primary • ' : ''}${d.type || 'Mobile'} • Linked ${linkedDate}</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="device-active" style="background:${d.active ? 'var(--cyber-accent)' : '#ff4d6a'};"></div>
+          ${!d.primary ? `<button onclick="removeLinkedDevice('${d.id}')" style="background:transparent;border:1px solid rgba(255,77,106,0.3);color:var(--cyber-warning);border-radius:6px;width:26px;height:26px;font-size:0.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:0.2s;" title="Unlink">×</button>` : ''}
+        </div>
+      `;
+      list.appendChild(item);
+    });
+  }
+  document.getElementById('profileModal').addEventListener('click', function(e) {
+    if (e.target === this) closeProfile();
+  });
+
+  window.prepareAccountsForPhoneSync = async function() {
+    if (!window.HoneySync || !window.Honey) {
+      setPreparePhoneSyncStatus('HoneyBound sync engine is not available on this page.', 'error');
+      return;
+    }
+
+    const storedAccounts = JSON.parse(localStorage.getItem('hbw_accounts_v1') || '[]');
+    if (!storedAccounts.length) {
+      setPreparePhoneSyncStatus('There are no laptop accounts to prepare for the phone yet.', 'error');
+      return;
+    }
+
+    setPreparePhoneSyncStatus('Requesting Windows PIN to decrypt laptop accounts for phone sync...', '');
+
+    try {
+      const assertion = await window.Honey.assertWithPRF('encryption');
+      const bundle = [];
+
+      for (const account of storedAccounts) {
+        try {
+          const secret = await window.Honey._getDecryptedSecret(account.id, assertion);
+          if (!secret) continue;
+          bundle.push({
+            id: account.id,
+            serviceName: account.serviceName,
+            secret: secret,
+            digits: account.digits || 6,
+            period: account.period || 30
+          });
+        } catch (err) {
+          console.warn('[honey] Could not prepare account for phone sync:', account.id, err && err.message ? err.message : err);
+        }
+      }
+
+      if (!bundle.length) {
+        throw new Error('No account secrets could be prepared from the laptop store.');
+      }
+
+      window.HoneySync.replaceCachedAccounts(bundle);
+      await window.HoneySync.pushSnapshot('manual-phone-sync-prepare');
+      setPreparePhoneSyncStatus(
+        'Prepared ' + bundle.length + ' account' + (bundle.length !== 1 ? 's' : '') + ' for the linked phone. Return to the phone and tap Initialize Authenticator again.',
+        'ok'
+      );
+    } catch (err) {
+      setPreparePhoneSyncStatus(err && err.message ? err.message : 'Could not prepare laptop accounts for phone sync.', 'error');
+    }
+  };
+
+  function switchTab(name, btn) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.modal-tab').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    btn.classList.add('active');
+    if (name === 'devices') {
+      saveLinkProvisionCache(null);
+      renderLinkedDevices();
+      syncLinkedDevicesFromServer();
+      setLinkDeviceMessage('Preparing a temporary link code...', 'Open the QR on the second device and tap the link page button to finish pairing.');
+      requestAnimationFrame(() => {
+        renderLinkQR();
+        startLinkCountdown();
+      });
+    } else {
+      stopLinkPolling();
+      stopLinkQR();
+    }
+  }
+
+  /* ════════════════════════════════════════════
+     SETTINGS ACTIONS
+  ════════════════════════════════════════════ */
+  function exportBackup() {
+    const accs = JSON.parse(localStorage.getItem('hbw_accounts_v1') || '[]').map(acc => ({
+      id: acc.id,
+      serviceName: acc.serviceName,
+      digits: acc.digits,
+      period: acc.period
+    }));
+    const payload = {
+      version: 2,
+      exported: new Date().toISOString(),
+      note: 'Metadata only. Device-bound secrets and honeyseed material are intentionally excluded.',
+      accounts: accs
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'honeybound-account-list.json';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  function confirmReset() {
+    if (confirm(' This will erase ALL accounts and credentials. Are you sure?')) {
+      [
+        'hbw_accounts_v1',
+        'hbw_webauthn_cred_id_v1',
+        'hbw_prf_supported_v1',
+        'hbw_honey_v1',
+        'hbw_honey_log_v1',
+        'hbw_honey_cleared_at',
+        'hbw_deriv_log_v1',
+        'hbw_user_id_v1',
+        'hbw_linked_devices_v1',
+        'hbw_device_instance_id_v1',
+        'hbw_account_sync_cache_v1',
+        'hbw_account_sync_revision_v1',
+        'hbw_mobile_link_session_v1'
+      ].forEach(function(key) {
+        localStorage.removeItem(key);
+      });
+      sessionStorage.removeItem('hbw_seeds_session');
+      location.href = 'index.html';
+    }
+  }
+
+  /* ════════════════════════════════════════════
+     STAT: accounts
+  ════════════════════════════════════════════ */
+  function updateAccountStat() {
+    const accs = JSON.parse(localStorage.getItem('hbw_accounts_v1') || '[]');
+    const el = document.getElementById('statAccounts');
+    if (el) el.textContent = accs.length || '0';
+  }
+
+  /* ════════════════════════════════════════════
+     PERF BADGE + OTP HOOK — set up after load
+     so graph.js functions are guaranteed to exist
+  ════════════════════════════════════════════ */
+  window.addEventListener('load', () => {
+    renderUserId();
+    syncLinkedDevicesFromServer();
+    if (window.HoneySync) {
+      const cache = window.HoneySync.getSyncCache();
+      if (cache.length) {
+        window.HoneySync.pushSnapshot('dashboard-backfill').catch(function(err) {
+          console.warn('[honey] Could not backfill account snapshot:', err && err.message ? err.message : err);
+        });
+      }
+    }
+    setInterval(updateAccountStat, 2000);
+    updateAccountStat();
+  });
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════
+     NOTIFICATION CENTER — real-time event logic
+═══════════════════════════════════════════════════════════ -->
+<script>
+  var LOG_KEY         = 'hbw_honey_log_v1';
+  var _honeyTrapCount = 0;
+
+  /* ── Timestamp helper ── */
+  function fullTimestamp() {
+    var now = new Date();
+    return now.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) +
+           ' · ' +
+           now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  }
+
+  /* ── Persist event to localStorage log ── */
+  function persistEvent(ev) {
+    try {
+      var log = JSON.parse(localStorage.getItem(LOG_KEY) || '[]');
+      log.unshift(ev);
+      if (log.length > 1000) log.splice(1000);
+      localStorage.setItem(LOG_KEY, JSON.stringify(log));
+    } catch(e) {}
+  }
+
+  /* ── Build a single alert card DOM node ── */
+  function buildAlertCard(ev) {
+    var item = document.createElement('div');
+
+    var type  = 'info';
+    var icon  = '';
+    var title = ev.title || ev.type;
+
+    if (ev.type === 'login-success')        { type = 'success';   icon = ''; title = 'Login Success'; }
+    else if (ev.type === 'honeytrap-triggered') { type = 'honeytrap'; icon = ''; title = 'Honeyseed Triggered — Possible Compromise'; }
+    else if (ev.type === 'login-invalid')   { type = 'invalid';   icon = ''; title = 'Invalid OTP Attempt'; }
+    else if (ev.type === 'account-added')   { type = 'info';      icon = ''; title = 'Account Added'; }
+    else if (ev.type === 'account-deleted') { type = 'info';      icon = ''; title = 'Account Removed'; }
+    else if (ev.type === 'otp-generated')   { type = 'success';   icon = ''; title = 'OTP Generated'; }
+
+    item.className = 'alert-item ' + type;
+
+    var ts  = ev.timestamp ? fullTimestampFromMs(ev.timestamp) : fullTimestamp();
+    var meta = (ev.serviceName || '') || '';
+    if (ev.type === 'honeytrap-triggered' && ev.honeyIndex !== undefined)
+      meta += (meta ? ' · ' : '') + 'Decoy #' + (ev.honeyIndex + 1) + ' used';
+    if (meta) meta += ' · ';
+    meta += ts;
+
+    item.innerHTML =
+      '<span class="alert-icon">' + icon + '</span>' +
+      '<div class="alert-body">' +
+        '<div class="alert-title">' + title + '</div>' +
+        '<div class="alert-meta">' + meta + '</div>' +
+      '</div>';
+
+    return item;
+  }
+
+  function fullTimestampFromMs(ms) {
+    var d = new Date(ms);
+    return d.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) +
+           ' · ' +
+           d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  }
+
+  /* ── Push a new event into the feed (prepend to top) ── */
+  function pushNotification(ev) {
+    persistEvent(ev);
+
+    if (ev.type === 'honeytrap-triggered') {
+      _honeyTrapCount++;
+      updateAlertCounter();
+    }
+
+    var feed    = document.getElementById('alertFeed');
+    var noMsg   = document.getElementById('noAlertsMsg');
+    if (!feed) return;
+
+    if (noMsg) noMsg.style.display = 'none';
+
+    /* Keep only the 5 most recent visible in the dashboard widget */
+    var existing = feed.querySelectorAll('.alert-item');
+    if (existing.length >= 5) existing[existing.length - 1].remove();
+
+    var card = buildAlertCard(ev);
+    feed.insertBefore(card, feed.firstChild);
+
+    /* Flash new item */
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(-6px)';
+    card.style.transition = 'opacity 0.3s, transform 0.3s';
+    requestAnimationFrame(function() {
+      card.style.opacity   = '1';
+      card.style.transform = 'translateY(0)';
+    });
+  }
+
+  /* ── Update the alert counter badge ── */
+  function updateAlertCounter() {
+    var el = document.getElementById('honeyCounter');
+    if (!el) return;
+    var log = [];
+    try { log = JSON.parse(localStorage.getItem(LOG_KEY) || '[]'); } catch(e) {}
+    var total = log.length;
+    var traps = log.filter(function(e) { return e.type === 'honeytrap-triggered'; }).length;
+    if (traps > 0) {
+      el.textContent = traps + ' honeytrap' + (traps !== 1 ? 's' : '') + ' · ' + total + ' events';
+      el.className   = 'honeytrap-counter danger';
+    } else {
+      el.textContent = total + ' event' + (total !== 1 ? 's' : '');
+      el.className   = 'honeytrap-counter';
+    }
+  }
+
+  /* ── Load recent events from log on page load ── */
+  function loadRecentEvents() {
+    var feed  = document.getElementById('alertFeed');
+    var noMsg = document.getElementById('noAlertsMsg');
+    if (!feed) return;
+
+    var log = [];
+    try { log = JSON.parse(localStorage.getItem(LOG_KEY) || '[]'); } catch(e) {}
+
+    // Filter out noisy otp-generated events for the dashboard widget
+    var filtered = log.filter(function(e) { return e.type !== 'otp-generated'; });
+
+    if (filtered.length === 0) {
+      if (noMsg) noMsg.style.display = '';
+      return;
+    }
+
+    if (noMsg) noMsg.style.display = 'none';
+    feed.innerHTML = '';
+
+    // Show 5 most recent
+    filtered.slice(0, 5).forEach(function(ev) {
+      feed.appendChild(buildAlertCard(ev));
+    });
+
+    updateAlertCounter();
+  }
+
+  /* ── Pull server audit log and feed into localStorage + graph.js ──
+     This runs on the same origin (https://localhost:8443) so no CORS/cert
+     issues. Events are merged into hbw_honey_log_v1 so graph.js seedFromLog()
+     picks them up, and also fired on the honey-event bus so the live chart updates.
+  ── */
+  var _auditSeenKeys = new Set();
+
+  function syncRemoteAuditLog() {
+    fetch('/api/honey/audit')
+      .then(function(r) { return r.ok ? r.json() : Promise.reject(r.status); })
+      .then(function(remote) {
+        if (!Array.isArray(remote)) return;
+        if (remote.length === 0) return;
+
+        var log = [];
+        try { log = JSON.parse(localStorage.getItem(LOG_KEY) || '[]'); } catch(e) {}
+        var localKeys = new Set(log.map(function(e) {
+          return (e.type || '') + ':' + (e.timestamp || '');
+        }));
+
+        var added = 0;
+        remote.forEach(function(e) {
+          /* Map server format → honey.js event format */
+          var ev = {
+            type:        e.event   || e.type || 'info',
+            serviceName: e.serviceName || 'Connectly',
+            accountId:   e.accountId,
+            honeyIndex:  e.seedIndex !== undefined ? e.seedIndex : e.honeyIndex,
+            timestamp:   e.ts      || e.timestamp || Date.now(),
+            source:      'connectly'
+          };
+          var key = ev.type + ':' + ev.timestamp;
+          if (localKeys.has(key) || _auditSeenKeys.has(key)) return;
+          _auditSeenKeys.add(key);
+          localKeys.add(key);
+
+          /* Persist to localStorage so graph.js seedFromLog() finds it */
+          log.unshift(ev);
+
+          /* Fire on honey-event bus so graph.js live counters update */
+          window.dispatchEvent(new CustomEvent('honey-event', { detail: ev }));
+
+          added++;
+        });
+
+        if (added > 0) {
+          if (log.length > 1000) log.splice(1000);
+          localStorage.setItem(LOG_KEY, JSON.stringify(log));
+          loadRecentEvents();
+          updateAlertCounter();
+          /* Tell graph.js to re-read localStorage now that new events are written */
+          window.dispatchEvent(new CustomEvent('hbw-log-updated'));
+        }
+      })
+      .catch(function(err) {
+        /* Server offline or no events — silently skip */
+      });
+  }
+
+  /* ── Listen to honey-event bus (fired by honey.js) ── */
+  window.addEventListener('honey-event', function(e) {
+    var ev = e.detail;
+    /* Ignore noisy per-tick otp-generated events in the notification center */
+    if (ev.type === 'otp-generated') return;
+    pushNotification(ev);
+    updateAlertCounter();
+  });
+
+  /* ── Style the View All button on hover ── */
+  window.addEventListener('load', function() {
+    var btn = document.querySelector('[onclick="location.href=\'events.html\'"]');
+    if (btn) {
+      btn.addEventListener('mouseover', function() {
+        btn.style.borderColor = 'var(--cyber-accent)';
+        btn.style.color       = 'var(--cyber-accent)';
+      });
+      btn.addEventListener('mouseout', function() {
+        btn.style.borderColor = '';
+        btn.style.color       = '';
+      });
+    }
+    loadRecentEvents();
+    syncRemoteAuditLog();
+    setInterval(syncRemoteAuditLog, 10000);
+  });
+</script>
+</body>
+</html>

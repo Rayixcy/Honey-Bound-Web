@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Accounts – HoneyBound-Web</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Manrope:wght@500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .account-item {
+      background: rgba(20,26,46,0.7);
+      border: 1px solid var(--cyber-border);
+      border-radius: 12px;
+      padding: 18px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      transition: border-color 0.2s;
+    }
+    .account-item:hover { border-color: rgba(0,255,136,0.3); }
+    .account-info h3 { font-size: 1.05rem; margin-bottom: 4px; }
+    .account-meta {
+      font-size: 0.78rem; color: var(--cyber-text-dim);
+      display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+    }
+    .account-right {
+      display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+    }
+    .otp-code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.75rem; color: var(--cyber-accent);
+      letter-spacing: 4px; min-width: 120px; text-align: right;
+    }
+    .copy-btn {
+      background: transparent;
+      border: 1px solid rgba(0,204,255,0.35);
+      color: var(--cyber-blue);
+      border-radius: 8px; width: 34px; height: 34px;
+      font-size: 1rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: 0.2s; flex-shrink: 0;
+    }
+    .copy-btn:hover { background: rgba(0,204,255,0.1); border-color: var(--cyber-blue); }
+    .timer-ring { position: relative; width: 40px; height: 40px; }
+    .timer-ring svg { transform: rotate(-90deg); }
+    .ring-bg       { fill: none; stroke: var(--cyber-border); stroke-width: 3; }
+    .ring-progress {
+      fill: none; stroke: var(--cyber-accent); stroke-width: 3;
+      stroke-linecap: round; transition: stroke-dashoffset 1s linear;
+    }
+    .ring-text {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem; color: var(--cyber-text);
+    }
+    .delete-btn {
+      background: transparent;
+      border: 1px solid rgba(255,107,53,0.3);
+      color: var(--cyber-warning);
+      border-radius: 8px; width: 34px; height: 34px;
+      font-size: 1.1rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: 0.2s; flex-shrink: 0;
+    }
+    .delete-btn:hover { background: rgba(255,107,53,0.1); border-color: var(--cyber-warning); }
+    .link-btn {
+      background: transparent;
+      border: 1px solid rgba(0,255,136,0.3);
+      color: var(--cyber-accent);
+      border-radius: 8px; width: 34px; height: 34px;
+      font-size: 1rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: 0.2s; flex-shrink: 0;
+    }
+    .link-btn:hover { background: rgba(0,255,136,0.1); border-color: var(--cyber-accent); }
+    .demo-btn {
+      background: transparent;
+      border: 1px solid rgba(255,204,0,0.32);
+      color: var(--cyber-yellow);
+      border-radius: 8px; width: 34px; height: 34px;
+      font-size: 0.95rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: 0.2s; flex-shrink: 0;
+    }
+    .demo-btn:hover { background: rgba(255,204,0,0.08); border-color: var(--cyber-yellow); }
+    .link-modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9999; animation: fadeIn 0.15s ease;
+    }
+    @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+    .link-modal {
+      background: #0d1117; border: 1px solid rgba(0,255,136,0.25);
+      border-radius: 16px; padding: 28px 28px 24px;
+      max-width: 420px; width: 90%; position: relative;
+    }
+    .link-modal h3 { font-size: 1.1rem; margin-bottom: 8px; color: var(--cyber-accent); }
+    .link-modal p  { font-size: 0.82rem; color: var(--cyber-text-dim); line-height: 1.65; margin-bottom: 16px; }
+    .link-account-id-box {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.9rem;
+      background: rgba(0,255,136,0.05); border: 1px solid rgba(0,255,136,0.2);
+      border-radius: 8px; padding: 10px 14px; word-break: break-all;
+      color: var(--cyber-accent); margin-bottom: 16px; letter-spacing: 1px;
+    }
+    .link-modal-actions { display: flex; gap: 10px; }
+    .link-copy-btn {
+      flex: 1; padding: 10px; background: linear-gradient(135deg, var(--cyber-accent), #00ccff);
+      border: none; border-radius: 8px; color: #000;
+      font-family: 'Manrope', sans-serif; font-weight: 800; font-size: 0.82rem;
+      cursor: pointer; transition: 0.2s; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .link-copy-btn:hover { opacity: 0.85; }
+    .link-close-btn {
+      padding: 10px 16px; background: transparent;
+      border: 1px solid var(--cyber-border); color: var(--cyber-text-dim);
+      border-radius: 8px; font-family: 'Manrope', sans-serif; font-weight: 700;
+      font-size: 0.82rem; cursor: pointer; transition: 0.2s;
+    }
+    .link-close-btn:hover { border-color: var(--cyber-text-dim); }
+    .link-status { margin-top: 12px; font-size: 0.78rem; min-height: 20px; }
+    .link-status.ok  { color: var(--cyber-accent); }
+    .link-status.err { color: #ff4d6a; }
+    .add-account-btn {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      width: 100%; padding: 16px; margin-top: 20px;
+      background: linear-gradient(135deg, var(--cyber-accent), #00ccff);
+      color: #000; border: none; border-radius: 12px;
+      font-family: 'Manrope', sans-serif; font-weight: 800; font-size: 1rem;
+      text-transform: uppercase; letter-spacing: 1px;
+      cursor: pointer; transition: 0.3s; box-shadow: 0 0 20px rgba(0,255,136,0.2);
+    }
+    .add-account-btn:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(0,255,136,0.4); }
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--cyber-text-dim); }
+    .empty-state .empty-icon { font-size: 3rem; margin-bottom: 16px; opacity: 0.4; }
+    .hw-badge {
+      font-size: 0.68rem; color: var(--cyber-accent);
+      border: 1px solid rgba(0,255,136,0.25); border-radius: 4px; padding: 1px 6px;
+    }
+    .honey-badge {
+      font-size: 0.68rem; color: var(--cyber-yellow);
+      border: 1px solid rgba(255,204,0,0.3); border-radius: 4px; padding: 1px 6px;
+      background: rgba(255,204,0,0.05);
+    }
+
+    @media (max-width: 640px) {
+      .account-item {
+        padding: 14px;
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .account-info {
+        width: 100%;
+      }
+      .account-info h3 {
+        font-size: 0.96rem;
+        margin-bottom: 6px;
+      }
+      .account-meta {
+        gap: 6px;
+        font-size: 0.72rem;
+      }
+      .account-right {
+        width: 100%;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) repeat(4, auto);
+        align-items: center;
+        gap: 8px;
+      }
+      .otp-code {
+        min-width: 0;
+        text-align: left;
+        font-size: 1.25rem;
+        letter-spacing: 2px;
+      }
+      .copy-btn,
+      .delete-btn,
+      .link-btn,
+      .demo-btn {
+        width: 32px;
+        height: 32px;
+      }
+      .timer-ring {
+        width: 34px;
+        height: 34px;
+      }
+      .timer-ring svg {
+        width: 34px;
+        height: 34px;
+      }
+      .ring-text {
+        font-size: 0.62rem;
+      }
+      .add-account-btn {
+        padding: 14px;
+        font-size: 0.92rem;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="logo">HoneyBound-Web</div>
+    <div class="tagline"> Account Manager</div>
+  </div>
+
+  <div class="card">
+    <div class="page-header">
+      <div class="page-title-area">
+        <h2>My Accounts</h2>
+        <p id="accountCountLabel">Loading…</p>
+      </div>
+      <button class="back-btn" id="backBtn" onclick="goBackHome()">← Dashboard</button>
+    </div>
+
+    <span class="status-badge status-success">Authenticator Active</span>
+
+    <div id="accountList" class="account-list" style="margin-top:24px;"></div>
+
+    <button class="add-account-btn" onclick="location.href='add-account.html'">
+       Add New Account
+    </button>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script src="honey.js"></script>
+<script src="sync.js"></script>
+<script>
+  /* ═══════════════════════════════════════════════════════════════════════
+     HBW-specific state & helpers
+     (main.js is Connectly's file and does NOT contain these)
+  ═══════════════════════════════════════════════════════════════════════ */
+
+  var STORAGE_KEY        = 'hbw_accounts_v1';
+  var CRED_KEY           = 'hbw_webauthn_cred_id_v1';
+  var MOBILE_SESSION_KEY = 'hbw_mobile_link_session_v1';
+  var CIRC               = 2 * Math.PI * 16;
+
+  var accounts           = [];
+  var webAuthnCredentialId = localStorage.getItem(CRED_KEY) || null;
+  var isInitialized      = !!webAuthnCredentialId;
+  var otpUnlockPromise   = null;
+  var otpUnlockCooldownUntil = 0;
+
+  function dedupeAccounts(list) {
+    var source = Array.isArray(list) ? list : [];
+    var seen = Object.create(null);
+    var deduped = [];
+    for (var i = 0; i < source.length; i++) {
+      var account = source[i];
+      if (!account || !account.id) continue;
+      var key = String(account.id);
+      if (seen[key]) continue;
+      seen[key] = true;
+      deduped.push(account);
+    }
+    return deduped;
+  }
+
+  /* Load account metadata from localStorage */
+  function loadAccounts() {
+    try {
+      accounts = dedupeAccounts(JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'));
+    } catch(e) {
+      accounts = [];
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(accounts));
+    /* NOTE: do NOT filter by honey store here — hbw_honey_v1 and hbw_accounts_v1
+       are populated at different times. Filtering here caused accounts to disappear
+       on every page reload whenever the honey store was cold or out of sync. */
+  }
+
+  function getMobileSession() {
+    try { return JSON.parse(localStorage.getItem(MOBILE_SESSION_KEY) || 'null'); }
+    catch(e) { return null; }
+  }
+
+  function getHomeHref() {
+    return 'dashboard.html';
+  }
+
+  window.goBackHome = function() {
+    location.href = getHomeHref();
+  };
+
+  /* Seconds remaining in current TOTP window */
+  function getTimeRemaining(period) {
+    period = period || 30;
+    return period - (Math.floor(Date.now() / 1000) % period);
+  }
+
+  /* ── FIXED: updateAllOTPs — decrypts secret via stable key on cold cache ── */
+  async function ensureOTPViewingSession(force) {
+    if (!window.Honey || !accounts.length) return false;
+    if (!force && otpUnlockPromise) return otpUnlockPromise;
+    if (!force && Date.now() < otpUnlockCooldownUntil) return false;
+
+    var needsAssertion = accounts.some(function(account) {
+      var entry = window.Honey.getEntry(account.id);
+      return entry && !window.Honey._secretCache.get(account.id);
+    });
+
+    if (!needsAssertion) return true;
+
+    otpUnlockPromise = (async function() {
+      try {
+        var assertion = await window.Honey.assertWithPRF('encryption');
+        for (var i = 0; i < accounts.length; i++) {
+          var acc = accounts[i];
+          var entry = window.Honey.getEntry(acc.id);
+          if (!entry || window.Honey._secretCache.get(acc.id)) continue;
+          if (entry.encryptedSecret) {
+            await window.Honey._getDecryptedSecret(acc.id, assertion);
+          } else if (entry.secret) {
+            window.Honey._secretCache.set(acc.id, entry.secret);
+          }
+        }
+        otpUnlockCooldownUntil = 0;
+        return true;
+      } catch (err) {
+        if (err && err.name === 'NotAllowedError') {
+          otpUnlockCooldownUntil = Date.now() + 15000;
+        }
+        throw err;
+      } finally {
+        otpUnlockPromise = null;
+      }
+    })();
+
+    return otpUnlockPromise;
+  }
+
+  async function updateAllOTPs() {
+    if (!window.Honey) return;
+    try {
+      await ensureOTPViewingSession(false);
+    } catch (unlockErr) {
+      console.warn('[accounts] OTP unlock skipped:', unlockErr && unlockErr.message ? unlockErr.message : unlockErr);
+      return;
+    }
+    for (var i = 0; i < accounts.length; i++) {
+      var account = accounts[i];
+      var el = document.getElementById('otp-' + account.id);
+      if (!el) continue;
+      try {
+        var otp = await window.Honey.generateOTP(account.id);
+        el.textContent = otp;
+      } catch(e) {
+        console.warn('[accounts] generateOTP failed for', account.id, ':', e.message);
+        el.textContent = '------';
+      }
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════════
+     Render
+  ═══════════════════════════════════════════════════════════════════════ */
+  function renderAccountsPage() {
+    var list  = document.getElementById('accountList');
+    var label = document.getElementById('accountCountLabel');
+    if (!list) return;
+    list.innerHTML = '';
+
+    if (accounts.length === 0) {
+      list.innerHTML =
+        '<div class="empty-state">' +
+          '<div class="empty-icon">🔐</div>' +
+          '<p>No accounts yet. Add your first TOTP account below.</p>' +
+        '</div>';
+      if (label) label.textContent = 'No accounts yet';
+      return;
+    }
+
+    if (label) label.textContent = accounts.length + ' account' + (accounts.length !== 1 ? 's' : '') + ' protected';
+
+    accounts.forEach(function(account) {
+      var tr         = getTimeRemaining(account.period);
+      var progress   = (tr / (account.period || 30)) * CIRC;
+      var honeyEntry = window.Honey ? window.Honey.getEntry(account.id) : null;
+      var honeyBadge = honeyEntry && honeyEntry.honeyEnabled
+        ? '<span class="honey-badge"> Decoys</span>'
+        : (honeyEntry
+            ? '<span style="font-size:0.68rem;color:var(--cyber-text-dim);border:1px solid var(--cyber-border-dim);border-radius:4px;padding:1px 6px;">Standard TOTP</span>'
+            : '');
+
+      var demoBtn = honeyEntry && honeyEntry.honeyEnabled
+        ? '<button class="demo-btn" onclick="openDemoSeeds(\'' + account.id + '\')" title="Presentation demo seeds">🧪</button>'
+        : '';
+
+      var item = document.createElement('div');
+      item.className = 'account-item';
+      item.innerHTML =
+        '<div class="account-info">' +
+          '<h3>' + account.serviceName + '</h3>' +
+          '<div class="account-meta">' +
+            '<span>⚙ ' + (account.digits || 6) + '-digit</span>' +
+            '<span>⏱ ' + (account.period || 30) + 's</span>' +
+            '<span class="hw-badge"> HW-Bound</span>' +
+            honeyBadge +
+          '</div>' +
+        '</div>' +
+        '<div class="account-right">' +
+          '<div class="otp-code" id="otp-' + account.id + '">------</div>' +
+          '<button id="copy-btn-' + account.id + '" class="copy-btn" ' +
+            'onclick="copyOTPPage(\'' + account.id + '\')" title="Copy OTP">⎘</button>' +
+          '<div class="timer-ring">' +
+            '<svg width="40" height="40" viewBox="0 0 40 40">' +
+              '<circle class="ring-bg" cx="20" cy="20" r="16"/>' +
+              '<circle class="ring-progress" id="ring-' + account.id + '" cx="20" cy="20" r="16" ' +
+                'stroke-dasharray="' + CIRC + '" stroke-dashoffset="' + (CIRC - progress) + '"/>' +
+            '</svg>' +
+            '<span class="ring-text" id="timer-' + account.id + '">' + tr + '</span>' +
+          '</div>' +
+          '<button class="delete-btn" ' +
+            'onclick="deleteAccount(\'' + account.id + '\')" ' +
+            'title="Remove">×</button>' +
+          demoBtn +
+          '<button class="link-btn" id="link-btn-' + account.id + '" ' +
+            'onclick="linkToConnectly(\'' + account.id + '\')" ' +
+            'title="Link to Connectly">🔗</button>' +
+        '</div>';
+      list.appendChild(item);
+    });
+  }
+
+  /* Copy OTP to clipboard */
+  function copyOTPPage(accountId) {
+    var el = document.getElementById('otp-' + accountId);
+    if (!el || el.textContent === '------') return;
+    var text = el.textContent.replace(/\s/g, '');
+    navigator.clipboard.writeText(text).catch(function() {
+      var ta = document.createElement('textarea');
+      ta.value = text; document.body.appendChild(ta);
+      ta.select(); document.execCommand('copy');
+      document.body.removeChild(ta);
+    });
+    var btn = document.getElementById('copy-btn-' + accountId);
+    if (btn) {
+      var orig = btn.innerHTML;
+      btn.innerHTML = '✓'; btn.style.color = 'var(--cyber-accent)';
+      setTimeout(function() { btn.innerHTML = orig; btn.style.color = ''; }, 1500);
+    }
+  }
+
+  /* Tick timer rings every second */
+  function tickTimers() {
+    accounts.forEach(function(account) {
+      var period  = account.period || 30;
+      var tr      = getTimeRemaining(period);
+      var timerEl = document.getElementById('timer-' + account.id);
+      var ringEl  = document.getElementById('ring-' + account.id);
+      if (timerEl) timerEl.textContent = tr;
+      if (ringEl)  ringEl.style.strokeDashoffset = CIRC - (tr / period) * CIRC;
+
+      /* Refresh OTP codes automatically on window rollover */
+      if (tr === period) {
+        updateAllOTPs().catch(function(){});
+      }
+    });
+  }
+
+  /* Delete account */
+  window.deleteAccount = function(id) {
+    accounts = accounts.filter(function(a) { return a.id !== id; });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(accounts));
+    if (window.Honey) window.Honey.deleteEntry(id);
+    if (window.HoneySync) {
+      window.HoneySync.removeCachedAccount(id);
+      window.HoneySync.pushSnapshot('account-deleted').catch(function(err) {
+        console.warn('[accounts] Snapshot sync failed:', err && err.message ? err.message : err);
+      });
+    }
+    renderAccountsPage();
+    updateAllOTPs().catch(function(){});
+  };
+
+  /* ═══════════════════════════════════════════════════════════════════════
+     Link to Connectly modal
+  ═══════════════════════════════════════════════════════════════════════ */
+  window.linkToConnectly = async function(accountId) {
+    var honeyEntry = window.Honey ? window.Honey.getEntry(accountId) : null;
+    var hasHoney   = honeyEntry && honeyEntry.honeyEnabled;
+
+    var existing = document.getElementById('linkModal');
+    if (existing) existing.remove();
+
+    var overlay = document.createElement('div');
+    overlay.className = 'link-modal-overlay';
+    overlay.id = 'linkModal';
+
+    var honeyWarn = !hasHoney
+      ? '<div style="background:rgba(255,204,0,0.07);border:1px solid rgba(255,204,0,0.25);border-radius:8px;' +
+          'padding:10px 13px;margin-bottom:14px;font-size:0.76rem;color:#f0c040;line-height:1.6;">' +
+          ' <strong>No honeyseeds</strong> — this account was added without a derivation password. ' +
+          'OTPs will still work in Connectly, but honeytrap detection will be disabled.</div>'
+      : '';
+
+    /* Re-register button — only shown for honeyseed accounts */
+    var reRegisterBtn = hasHoney
+      ? '<button class="link-copy-btn" id="linkPinBtn" ' +
+          'style="background:linear-gradient(135deg,var(--cyber-accent),#00ccff);color:#000;margin-top:10px;width:100%;" ' +
+          'onclick="doReRegisterSeeds(\'' + accountId + '\')"> Re-register seeds with Connectly </button>'
+      : '';
+
+    /* Copy / Send button — no PIN needed, Account ID is not a secret */
+    var copyOrSendBtn = window.opener
+      ? '<button class="link-copy-btn" style="background:linear-gradient(135deg,#1d4fd8,#3b82f6);" onclick="sendIdToConnectly(\'' + accountId + '\')">↩ Send to Connectly</button>'
+      : '<button class="link-copy-btn" onclick="copyLinkId()">⎘ Copy Account ID</button>';
+
+    overlay.innerHTML =
+      '<div class="link-modal">' +
+        '<h3>🔗 Account ID</h3>' +
+        honeyWarn +
+        /* Account ID shown immediately — it is not a secret */
+        '<div style="font-size:0.74rem;color:var(--cyber-text-dim);margin-bottom:6px;">Your Account ID:</div>' +
+        '<div class="link-account-id-box" id="linkAccountIdDisplay" ' +
+          'style="cursor:pointer;user-select:all;" title="Click to select all">' + accountId + '</div>' +
+        '<div class="link-modal-actions" style="margin-bottom:12px;">' +
+          copyOrSendBtn +
+          '<button class="link-close-btn" onclick="document.getElementById(\'linkModal\').remove()">Close</button>' +
+        '</div>' +
+        /* Re-register section — PIN only needed here, not above */
+        ( hasHoney
+          ? '<div style="border-top:1px solid rgba(255,255,255,0.07);padding-top:12px;margin-top:4px;">' +
+              '<div style="font-size:0.74rem;color:var(--cyber-text-dim);margin-bottom:8px;">' +
+                'Need to re-sync honeyseeds with Connectly? This requires your device PIN to re-derive the decoy seeds.' +
+              '</div>' +
+              reRegisterBtn +
+            '</div>'
+          : ''
+        ) +
+        '<div class="link-status" id="linkStatus"></div>' +
+      '</div>';
+
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.remove(); });
+
+    /* Click-to-select-all on the ID box */
+    var idBox = document.getElementById('linkAccountIdDisplay');
+    if (idBox) {
+      idBox.addEventListener('click', function() {
+        var range = document.createRange();
+        range.selectNodeContents(idBox);
+        var sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+      });
+    }
+  };
+
+  /* PIN-gated action: re-derives decoy seeds and re-registers with Connectly.
+     PIN is NOT needed just to view/copy the Account ID — only for this. */
+  window.doReRegisterSeeds = async function(accountId) {
+    var st     = document.getElementById('linkStatus');
+    var pinBtn = document.getElementById('linkPinBtn');
+    var entry  = window.Honey ? window.Honey.getEntry(accountId) : null;
+
+    pinBtn.disabled = true;
+    st.className    = 'link-status';
+    st.textContent  = ' Requesting device PIN to re-derive seeds…';
+
+    try {
+      var credId = localStorage.getItem(CRED_KEY);
+      if (!credId) throw new Error('Authenticator not initialised. Go to the home page first.');
+      var assertion = await window.Honey.assertWithPRF('export');
+      st.textContent = ' Deriving seeds…';
+      var exported = await window.Honey.exportSeedsForConnectly(accountId, assertion, '');
+
+      st.textContent = ' Re-registering with Connectly…';
+      var resp = await fetch((window.HBW_CONFIG && window.HBW_CONFIG.connectlyRegisterUrl) || 'https://localhost:3000/api/register-honeybound-account', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({
+          accountId:   accountId,
+          seeds:       exported.seeds,
+          realIndex:   exported.realIndex,
+          serviceName: entry ? entry.serviceName : ''
+        })
+      });
+      if (!resp.ok) throw new Error('Connectly returned HTTP ' + resp.status);
+      var result = await resp.json();
+      if (!result.success) throw new Error(result.message || 'Unknown error from Connectly');
+
+      st.textContent = ' Seeds re-registered with Connectly.';
+      st.className   = 'link-status ok';
+      pinBtn.textContent = '✓ Done';
+
+    } catch(err) {
+      console.error('[ReRegister]', err);
+      var msg = err.message || String(err);
+      if (err.name === 'NotAllowedError') msg = 'PIN cancelled or timed out.';
+      else if (msg.includes('fetch') || msg.includes('Failed to fetch'))
+        msg = 'Cannot reach Connectly at https://localhost:3000 — is it running?';
+      st.textContent = ' ' + msg;
+      st.className   = 'link-status err';
+      pinBtn.disabled = false;
+    }
+  };
+
+  window.sendIdToConnectly = function(accountId) {
+    if (window.opener) {
+      window.opener.postMessage({ type: 'honeybound-account-id', accountId: accountId }, '*');
+    }
+    var st = document.getElementById('linkStatus');
+    if (st) { st.textContent = '✓ Sent to Connectly — this window will close.'; st.className = 'link-status ok'; }
+    setTimeout(function() { window.close(); }, 800);
+  };
+
+  window.copyLinkId = function() {
+    var el = document.getElementById('linkAccountIdDisplay');
+    if (!el) return;
+    var id = el.textContent.trim();
+    if (!id) return;
+    navigator.clipboard.writeText(id).catch(function() {
+      var ta = document.createElement('textarea');
+      ta.value = id; document.body.appendChild(ta);
+      ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+    });
+    var btn = document.querySelector('#linkModal .link-copy-btn');
+    if (btn) { var orig = btn.innerHTML; btn.innerHTML = '✓ Copied!'; setTimeout(function(){ btn.innerHTML = orig; }, 1500); }
+    var st = document.getElementById('linkStatus');
+    if (st) { st.textContent = '✓ Copied — paste it into Connectly\'s OTP page.'; st.className = 'link-status ok'; }
+  };
+
+  /* ═══════════════════════════════════════════════════════════════════════
+     Init
+  ═══════════════════════════════════════════════════════════════════════ */
+  window.addEventListener('load', function () {
+    var backBtn = document.getElementById('backBtn');
+    var mobileSession = getMobileSession();
+    if (backBtn && mobileSession && mobileSession.token) {
+      backBtn.textContent = '← Mobile Home';
+    }
+
+    loadAccounts();
+
+    /* Render the list first (account names + "------" placeholders) */
+    renderAccountsPage();
+
+    /* Immediately try to generate OTPs (works even after page reload) */
+    updateAllOTPs().catch(function(e) {
+      console.warn('[accounts] Initial OTP update failed:', e && e.message);
+    });
+
+    /* Tick timers + refresh OTPs every second */
+    setInterval(function() {
+      tickTimers();
+    }, 1000);
+
+    /* Refresh OTPs every 5 seconds (belt + braces) */
+    setInterval(function() {
+      updateAllOTPs().catch(function(){});
+    }, 5000);
+
+    if (window.HoneySync) {
+      window.HoneySync.ensureDeviceId();
+      window.HoneySync.checkForRemoteChanges()
+        .then(function() {
+          loadAccounts();
+          renderAccountsPage();
+          otpUnlockCooldownUntil = 0;
+          updateAllOTPs().catch(function(){});
+        })
+        .catch(function(err) {
+          console.warn('[accounts] Initial remote sync failed:', err && err.message ? err.message : err);
+        });
+      window.HoneySync.startPolling(15000);
+      window.addEventListener('hbw-sync-applied', function() {
+        loadAccounts();
+        renderAccountsPage();
+        otpUnlockCooldownUntil = 0;
+        updateAllOTPs().catch(function(){});
+      });
+    }
+  });
+
+  window.openDemoSeeds = function(accountId) {
+    location.href = 'demo-seeds.html?accountId=' + encodeURIComponent(accountId);
+  };
+</script>
+</body>
+</html>

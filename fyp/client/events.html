@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Event Log – HoneyBound-Web</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Manrope:wght@500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .events-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+    .events-title h2 { font-size: 1.8rem; margin-bottom: 4px; }
+    .events-title p  { color: var(--cyber-text-dim); font-size: 0.84rem; }
+
+    .filter-bar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--cyber-border-dim);
+    }
+    .filter-btn {
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-family: 'Manrope', sans-serif;
+      font-size: 0.73rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      border: 1px solid var(--cyber-border);
+      background: transparent;
+      color: var(--cyber-text-dim);
+      transition: 0.2s;
+    }
+    .filter-btn:hover         { border-color: var(--cyber-accent); color: var(--cyber-accent); }
+    .filter-btn.active        { background: rgba(0,255,136,0.1); border-color: var(--cyber-accent); color: var(--cyber-accent); }
+    .filter-btn.active.red    { background: rgba(255,77,106,0.1); border-color: #ff4d6a; color: #ff4d6a; }
+    .filter-btn.active.yellow { background: rgba(255,204,0,0.1); border-color: var(--cyber-yellow); color: var(--cyber-yellow); }
+    .filter-btn.active.blue   { background: rgba(0,204,255,0.1); border-color: var(--cyber-blue); color: var(--cyber-blue); }
+
+    .event-stats {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .event-stat {
+      flex: 1;
+      min-width: 100px;
+      background: rgba(16,22,40,0.6);
+      border: 1px solid var(--cyber-border-dim);
+      border-radius: 10px;
+      padding: 12px 14px;
+      text-align: center;
+    }
+    .event-stat-val { font-family: 'JetBrains Mono', monospace; font-size: 1.5rem; font-weight: 700; line-height: 1; margin-bottom: 4px; }
+    .event-stat-val.green  { color: var(--cyber-accent); }
+    .event-stat-val.red    { color: #ff4d6a; }
+    .event-stat-val.yellow { color: var(--cyber-yellow); }
+    .event-stat-val.blue   { color: var(--cyber-blue); }
+    .event-stat-lbl { font-size: 0.66rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--cyber-text-dim); }
+
+    .event-list { display: grid; gap: 8px; }
+
+    .event-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 14px 16px;
+      border-radius: 11px;
+      border: 1px solid;
+      animation: fadeIn 0.2s ease;
+      transition: transform 0.15s;
+    }
+    .event-card:hover { transform: translateX(3px); }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
+
+    .event-card.success   { background: rgba(0,255,136,0.04);  border-color: rgba(0,255,136,0.15); }
+    .event-card.honeytrap { background: rgba(255,204,0,0.05);  border-color: rgba(255,204,0,0.25); }
+    .event-card.invalid   { background: rgba(255,77,106,0.04); border-color: rgba(255,77,106,0.12); }
+    .event-card.info      { background: rgba(0,204,255,0.03);  border-color: rgba(0,204,255,0.12); }
+
+    .event-icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 1px; }
+
+    .event-body { flex: 1; min-width: 0; }
+    .event-title { font-size: 0.9rem; font-weight: 700; color: var(--cyber-text); margin-bottom: 3px; }
+    .event-card.honeytrap .event-title { color: var(--cyber-yellow); }
+    .event-card.invalid   .event-title { color: #ff4d6a; }
+    .event-card.success   .event-title { color: var(--cyber-accent); }
+
+    .event-detail {
+      font-size: 0.76rem;
+      color: var(--cyber-text-dim);
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .event-detail .badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      padding: 1px 7px;
+      border-radius: 4px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--cyber-border-dim);
+    }
+    .source-badge {
+      font-size: 0.64rem; padding: 1px 6px; border-radius: 4px;
+      background: rgba(0,204,255,0.08); border: 1px solid rgba(0,204,255,0.25);
+      color: var(--cyber-blue); font-family: 'JetBrains Mono', monospace;
+    }
+    .event-ts {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--cyber-text-dim);
+      flex-shrink: 0;
+      margin-left: auto;
+      text-align: right;
+    }
+
+    .empty-events { text-align: center; padding: 60px 20px; color: var(--cyber-text-dim); }
+    .empty-events .empty-icon { font-size: 3rem; margin-bottom: 12px; opacity: 0.3; }
+
+    .load-more-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      margin-top: 18px;
+      padding: 13px;
+      background: transparent;
+      border: 1px solid var(--cyber-border);
+      color: var(--cyber-text-dim);
+      border-radius: 10px;
+      font-family: 'Manrope', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .load-more-btn:hover { border-color: var(--cyber-accent); color: var(--cyber-accent); }
+    .load-more-btn:disabled { opacity: 0.35; cursor: default; }
+
+    .clear-btn {
+      padding: 8px 16px;
+      background: transparent;
+      border: 1px solid rgba(255,77,106,0.35);
+      color: #ff4d6a;
+      border-radius: 8px;
+      font-family: 'Manrope', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .clear-btn:hover { background: rgba(255,77,106,0.1); }
+
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 10px 18px; background: transparent;
+      border: 1px solid var(--cyber-border); color: var(--cyber-text-dim);
+      border-radius: 10px; font-family: 'Manrope', sans-serif;
+      font-size: 0.82rem; font-weight: 700; cursor: pointer;
+      text-transform: uppercase; letter-spacing: 0.5px; transition: 0.2s;
+      white-space: nowrap;
+    }
+    .back-btn:hover { border-color: var(--cyber-accent); color: var(--cyber-accent); }
+
+    /* SSE status indicator */
+    .live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-family: 'Manrope', sans-serif;
+      transition: 0.3s;
+    }
+    .live-badge.connected    { background: rgba(0,255,136,0.08); border: 1px solid rgba(0,255,136,0.3); color: var(--cyber-accent); }
+    .live-badge.disconnected { background: rgba(255,77,106,0.08); border: 1px solid rgba(255,77,106,0.3); color: #ff4d6a; }
+    .live-badge.connecting   { background: rgba(255,204,0,0.08); border: 1px solid rgba(255,204,0,0.3); color: var(--cyber-yellow); }
+    .live-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+    .live-badge.connected .live-dot { animation: pulse 1.8s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="logo">HoneyBound-Web</div>
+    <div class="tagline">Security Event Log</div>
+  </div>
+
+  <div class="card">
+    <div class="events-header">
+      <div class="events-title">
+        <h2>All Events</h2>
+        <p id="eventSubtitle">Loading…</p>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <!-- SSE live indicator -->
+        <span class="live-badge connecting" id="liveBadge">
+          <span class="live-dot"></span>
+          <span id="liveLabel">Connecting…</span>
+        </span>
+        <button class="clear-btn" onclick="clearAllEvents()">Clear All</button>
+        <button class="back-btn" onclick="location.href='dashboard.html'">← Dashboard</button>
+      </div>
+    </div>
+
+    <div class="event-stats">
+      <div class="event-stat"><div class="event-stat-val green"  id="statSuccess">0</div><div class="event-stat-lbl">Logins</div></div>
+      <div class="event-stat"><div class="event-stat-val yellow" id="statHoney">0</div><div class="event-stat-lbl">Honeytraps</div></div>
+      <div class="event-stat"><div class="event-stat-val red"    id="statInvalid">0</div><div class="event-stat-lbl">Invalid</div></div>
+      <div class="event-stat"><div class="event-stat-val blue"   id="statTotal">0</div><div class="event-stat-lbl">Total</div></div>
+    </div>
+
+    <div class="filter-bar">
+      <button class="filter-btn active"  id="f-all"       onclick="setFilter('all',       this)">All</button>
+      <button class="filter-btn"         id="f-success"   onclick="setFilter('success',   this)">✅ Logins</button>
+      <button class="filter-btn"         id="f-honeytrap" onclick="setFilter('honeytrap', this)">🚨 Honeytraps</button>
+      <button class="filter-btn"         id="f-invalid"   onclick="setFilter('invalid',   this)">❌ Invalid</button>
+      <button class="filter-btn"         id="f-info"      onclick="setFilter('info',      this)">🔔 System</button>
+    </div>
+
+    <div id="eventList" class="event-list"></div>
+
+    <button class="load-more-btn" id="loadMoreBtn" onclick="loadMore()" style="display:none;">
+      Load More Events
+    </button>
+  </div>
+</div>
+
+<script>
+  var LOG_KEY      = 'hbw_honey_log_v1';
+  var CLEARED_KEY  = 'hbw_honey_cleared_at';
+  var PAGE_SIZE    = 20;
+  var _allEvents   = [];
+  var _filtered    = [];
+  var _shown       = 0;
+  var _activeFilter = 'all';
+  var SYSTEM_TYPES = ['account-added','account-deleted','otp-generated','account-linked','session-unlocked','device-linked'];
+
+  var TYPE_MAP = {
+    'login-success':        { type: 'success',   icon: '', title: 'Login Success' },
+    'honeytrap-triggered':  { type: 'honeytrap', icon: '', title: 'Honeyseed Triggered — Possible Compromise' },
+    'login-invalid':        { type: 'invalid',   icon: '', title: 'Invalid OTP Attempt' },
+    'account-added':        { type: 'info',      icon: '', title: 'Account Added' },
+    'account-deleted':      { type: 'info',      icon: '', title: 'Account Removed' },
+    'otp-generated':        { type: 'info',      icon: '', title: 'OTP Generated' },
+    'account-linked':       { type: 'info',      icon: '', title: 'Account Linked to Connectly' },
+    'session-unlocked':     { type: 'info',      icon: '', title: 'Session Unlocked' },
+    'device-linked':        { type: 'info',      icon: '', title: 'Device Linked' }
+  };
+
+  function typeInfo(evType) {
+    return TYPE_MAP[evType] || { type: 'info', icon: '', title: evType };
+  }
+
+  function fmtTs(ms) {
+    if (!ms) return '—';
+    var d = new Date(ms);
+    return d.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) +
+           '  ' +
+           d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  }
+
+  function buildCard(ev) {
+    var info  = typeInfo(ev.type);
+    var card  = document.createElement('div');
+    card.className = 'event-card ' + info.type;
+
+    var detail = '';
+    if (ev.serviceName) detail += '<span class="badge">' + ev.serviceName + '</span>';
+    if (ev.deviceName) detail += '<span class="badge">' + ev.deviceName + '</span>';
+    if (ev.deviceType) detail += '<span class="badge">' + ev.deviceType + '</span>';
+    if (ev.type === 'honeytrap-triggered' && ev.honeyIndex !== undefined)
+      detail += '<span class="badge" style="border-color:rgba(255,204,0,0.3);color:var(--cyber-yellow);">Decoy #' + (ev.honeyIndex + 1) + '</span>';
+    if (ev.accountId && !ev.serviceName) detail += '<span class="badge">' + ev.accountId.substring(0,8) + '…</span>';
+    if (ev.username && ev.username !== 'unknown') detail += '<span class="badge">@' + ev.username + '</span>';
+    if (ev.source === 'connectly') detail += '<span class="source-badge">via Connectly</span>';
+
+    card.innerHTML =
+      '<span class="event-icon">' + info.icon + '</span>' +
+      '<div class="event-body">' +
+        '<div class="event-title">' + info.title + '</div>' +
+        '<div class="event-detail">' + detail + '</div>' +
+      '</div>' +
+      '<div class="event-ts">' + fmtTs(ev.timestamp || ev.ts) + '</div>';
+
+    return card;
+  }
+
+  function setFilter(filter, btn) {
+    _activeFilter = filter;
+    document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active', 'red', 'yellow', 'blue'); });
+    btn.classList.add('active');
+    if (filter === 'honeytrap') btn.classList.add('yellow');
+    if (filter === 'invalid')   btn.classList.add('red');
+    if (filter === 'info')      btn.classList.add('blue');
+    applyFilter();
+  }
+
+  function applyFilter() {
+    if (_activeFilter === 'all') {
+      _filtered = _allEvents;
+    } else if (_activeFilter === 'success') {
+      _filtered = _allEvents.filter(function(e) { return e.type === 'login-success'; });
+    } else if (_activeFilter === 'honeytrap') {
+      _filtered = _allEvents.filter(function(e) { return e.type === 'honeytrap-triggered'; });
+    } else if (_activeFilter === 'invalid') {
+      _filtered = _allEvents.filter(function(e) { return e.type === 'login-invalid'; });
+    } else if (_activeFilter === 'info') {
+      _filtered = _allEvents.filter(function(e) { return SYSTEM_TYPES.indexOf(e.type) !== -1; });
+    }
+    _shown = 0;
+    document.getElementById('eventList').innerHTML = '';
+    loadMore();
+  }
+
+  function loadMore() {
+    var list = document.getElementById('eventList');
+    var btn  = document.getElementById('loadMoreBtn');
+
+    if (_filtered.length === 0 && _shown === 0) {
+      list.innerHTML = '<div class="empty-events"><div class="empty-icon"></div><p>No events match this filter.</p></div>';
+      btn.style.display = 'none';
+      return;
+    }
+
+    var slice = _filtered.slice(_shown, _shown + PAGE_SIZE);
+    slice.forEach(function(ev) { list.appendChild(buildCard(ev)); });
+    _shown += slice.length;
+    btn.style.display = _shown < _filtered.length ? 'flex' : 'none';
+  }
+
+  function renderStats() {
+    var success = _allEvents.filter(function(e) { return e.type === 'login-success'; }).length;
+    var honey   = _allEvents.filter(function(e) { return e.type === 'honeytrap-triggered'; }).length;
+    var invalid = _allEvents.filter(function(e) { return e.type === 'login-invalid'; }).length;
+    var total   = _allEvents.length;
+
+    document.getElementById('statSuccess').textContent = success;
+    document.getElementById('statHoney').textContent   = honey;
+    document.getElementById('statInvalid').textContent = invalid;
+    document.getElementById('statTotal').textContent   = total;
+
+    var sub = total + ' total event' + (total !== 1 ? 's' : '');
+    if (honey > 0) sub += ' · ⚠ ' + honey + ' honeytrap' + (honey !== 1 ? 's' : '') + ' detected';
+    document.getElementById('eventSubtitle').textContent = sub;
+  }
+
+  /* ── Prepend a single new event (from SSE) at the top of the list ─────────
+     We insert it into _allEvents and _filtered at position 0, then prepend
+     the card to the DOM without re-rendering everything.
+  ── */
+  function prependEvent(ev) {
+    // Normalise type field (server uses 'event', client uses 'type')
+    if (!ev.type && ev.event) ev.type = ev.event;
+
+    var clearedAt = parseInt(localStorage.getItem(CLEARED_KEY) || '0', 10);
+    var ts = ev.timestamp || ev.ts || 0;
+    if (ts && ts <= clearedAt) return; // predates last clear — ignore
+
+    // Deduplicate: skip if same type+timestamp already present
+    var key = ev.type + ':' + ts;
+    var already = _allEvents.some(function(e) { return (e.type + ':' + (e.timestamp||e.ts)) === key; });
+    if (already) return;
+
+    _allEvents.unshift(ev);
+
+    // Only prepend to DOM if it passes the active filter
+    var passes = (
+      _activeFilter === 'all' ||
+      (_activeFilter === 'success'   && ev.type === 'login-success') ||
+      (_activeFilter === 'honeytrap' && ev.type === 'honeytrap-triggered') ||
+      (_activeFilter === 'invalid'   && ev.type === 'login-invalid') ||
+      (_activeFilter === 'info'      && SYSTEM_TYPES.indexOf(ev.type) !== -1)
+    );
+    if (passes) {
+      _filtered.unshift(ev);
+      _shown++;
+      var list = document.getElementById('eventList');
+      var empty = list.querySelector('.empty-events');
+      if (empty) list.innerHTML = '';
+      list.prepend(buildCard(ev));
+    }
+
+    renderStats();
+  }
+
+  async function clearAllEvents() {
+    if (!confirm('Clear all ' + _allEvents.length + ' events from the log? This cannot be undone.')) return;
+    var now = Date.now();
+    localStorage.setItem(CLEARED_KEY, String(now));
+    localStorage.removeItem(LOG_KEY);
+    _allEvents = [];
+    _filtered  = [];
+    _shown     = 0;
+    renderStats();
+    applyFilter();
+    try { await fetch('https://localhost:8443/api/honey/audit', { method: 'DELETE' }); }
+    catch(e) {}
+  }
+
+  /* ── SSE live connection ──────────────────────────────────────────────────
+     - Connects to GET /api/honey/events/stream on the HBW server.
+     - On each `honey-event` message, calls prependEvent() to insert it live.
+     - On log-cleared message, clears the local display.
+     - Reconnects automatically (EventSource handles this natively, but we
+       also do an exponential-backoff retry for manual reconnect on error).
+     - Falls back to the fetch-on-load path if SSE is unavailable (server offline).
+  ── */
+  var _sseRetryDelay = 2000;
+  var _sseTimer = null;
+
+  function setLiveStatus(status) {
+    var badge = document.getElementById('liveBadge');
+    var label = document.getElementById('liveLabel');
+    badge.className = 'live-badge ' + status;
+    if (status === 'connected')    label.textContent = 'Live';
+    if (status === 'disconnected') label.textContent = 'Offline';
+    if (status === 'connecting')   label.textContent = 'Connecting…';
+  }
+
+  function connectSSE() {
+    setLiveStatus('connecting');
+    var source = new EventSource('https://localhost:8443/api/honey/events/stream');
+
+    source.onopen = function() {
+      console.log('[events] SSE connected');
+      setLiveStatus('connected');
+      _sseRetryDelay = 2000; // reset backoff
+    };
+
+    source.onmessage = function(e) {
+      try {
+        var ev = JSON.parse(e.data);
+
+        // Server signals a log-clear: wipe the local display
+        if (ev.event === 'log-cleared') {
+          var clearedAt = parseInt(localStorage.getItem(CLEARED_KEY) || '0', 10);
+          if (ev.ts > clearedAt) {
+            localStorage.setItem(CLEARED_KEY, String(ev.ts));
+            localStorage.removeItem(LOG_KEY);
+            _allEvents = [];
+            _filtered  = [];
+            _shown     = 0;
+            renderStats();
+            applyFilter();
+          }
+          return;
+        }
+
+        prependEvent(ev);
+      } catch(err) {
+        console.warn('[events] Bad SSE payload:', e.data, err);
+      }
+    };
+
+    source.onerror = function() {
+      console.warn('[events] SSE disconnected — retrying in', _sseRetryDelay, 'ms');
+      setLiveStatus('disconnected');
+      source.close();
+      _sseTimer = setTimeout(function() {
+        _sseRetryDelay = Math.min(_sseRetryDelay * 2, 30000); // cap at 30 s
+        connectSSE();
+      }, _sseRetryDelay);
+    };
+  }
+
+  /* ── Initial load: local localStorage events + one-time fetch of server audit ── */
+  async function fetchRemoteEventsOnce() {
+    try {
+      var resp = await fetch('https://localhost:8443/api/honey/audit');
+      if (!resp.ok) return;
+      var remote = await resp.json();
+      if (!Array.isArray(remote)) return;
+
+      var clearedAt = parseInt(localStorage.getItem(CLEARED_KEY) || '0', 10);
+
+      remote.forEach(function(e) {
+        var ev = {
+          type:       e.event || e.type || 'info',
+          accountId:  e.accountId,
+          username:   e.username,
+          serviceName:e.serviceName,
+          deviceName: e.deviceName,
+          deviceType: e.deviceType,
+          honeyIndex: e.seedIndex !== undefined ? e.seedIndex : e.honeyIndex,
+          timestamp:  e.ts || e.timestamp,
+          source:     e.source || 'local'
+        };
+        if ((ev.timestamp || 0) > clearedAt) prependEvent(ev);
+      });
+    } catch(e) {
+      // Server offline — SSE will reconnect when it comes up
+    }
+  }
+
+  window.addEventListener('load', function () {
+    var clearedAt = parseInt(localStorage.getItem(CLEARED_KEY) || '0', 10);
+    try {
+      var raw = JSON.parse(localStorage.getItem(LOG_KEY) || '[]');
+      _allEvents = raw.filter(function(e) { return (e.timestamp || 0) > clearedAt; });
+    } catch(e) { _allEvents = []; }
+
+    renderStats();
+    applyFilter();
+
+    // One-time fetch of existing server audit entries
+    fetchRemoteEventsOnce();
+
+    // Start live SSE stream for all future events
+    connectSSE();
+  });
+
+  window.addEventListener('beforeunload', function() {
+    if (_sseTimer) clearTimeout(_sseTimer);
+  });
+</script>
+</body>
+</html>

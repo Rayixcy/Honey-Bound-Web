@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HoneyBound Demo Seeds</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Manrope:wght@500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .demo-warning {
+      margin-top: 18px;
+      padding: 16px 18px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,204,0,0.28);
+      background: rgba(255,204,0,0.06);
+      color: #f6d66a;
+      font-size: 0.82rem;
+      line-height: 1.65;
+    }
+    .demo-grid {
+      display: grid;
+      gap: 18px;
+      margin-top: 22px;
+    }
+    .demo-panel {
+      background: rgba(16,22,40,0.62);
+      border: 1px solid var(--cyber-border-dim);
+      border-radius: 14px;
+      padding: 18px;
+    }
+    .demo-panel h3 {
+      margin-bottom: 10px;
+      font-size: 1rem;
+    }
+    .demo-row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .demo-label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 0.78rem;
+      color: var(--cyber-text-dim);
+      font-weight: 700;
+    }
+    .demo-input, .demo-select {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid var(--cyber-border);
+      background: rgba(10,14,26,0.95);
+      color: var(--cyber-text);
+      padding: 12px 14px;
+      font-family: 'Manrope', sans-serif;
+      font-size: 0.9rem;
+      outline: none;
+    }
+    .demo-input:focus, .demo-select:focus {
+      border-color: var(--cyber-blue);
+      box-shadow: 0 0 0 3px rgba(0,204,255,0.08);
+    }
+    .demo-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+    .demo-btn-main, .demo-btn-secondary {
+      border-radius: 10px;
+      padding: 11px 16px;
+      font-family: 'Manrope', sans-serif;
+      font-weight: 800;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .demo-btn-main {
+      background: linear-gradient(135deg, #ffdc64, #ffb01f);
+      color: #181100;
+      border: none;
+    }
+    .demo-btn-secondary {
+      background: transparent;
+      color: var(--cyber-text-dim);
+      border: 1px solid var(--cyber-border);
+    }
+    .demo-btn-main:hover, .demo-btn-secondary:hover {
+      transform: translateY(-1px);
+    }
+    .demo-status {
+      min-height: 22px;
+      margin-top: 12px;
+      font-size: 0.8rem;
+      color: var(--cyber-text-dim);
+    }
+    .demo-status.ok { color: var(--cyber-accent); }
+    .demo-status.err { color: #ff6b7d; }
+    .seed-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 0.8rem;
+    }
+    .seed-table th, .seed-table td {
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      padding: 10px 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+    .seed-table th {
+      color: var(--cyber-text-dim);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .seed-kind-real { color: var(--cyber-accent); font-weight: 800; }
+    .seed-kind-decoy { color: var(--cyber-yellow); font-weight: 800; }
+    .seed-code, .seed-hex {
+      font-family: 'JetBrains Mono', monospace;
+      word-break: break-all;
+    }
+    .seed-code {
+      color: var(--cyber-blue);
+      font-size: 0.95rem;
+      font-weight: 700;
+    }
+    .seed-meta {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      color: var(--cyber-text-dim);
+      font-size: 0.76rem;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="logo">HoneyBound-Web</div>
+    <div class="tagline">Presentation Seed Viewer</div>
+  </div>
+
+  <div class="card">
+    <div class="page-header">
+      <div class="page-title-area">
+        <h2>Demo Seeds</h2>
+        <p>Presentation-only view of the real seed and 19 decoys for a selected account.</p>
+      </div>
+      <button class="back-btn" onclick="location.href='accounts.html'">← My Accounts</button>
+    </div>
+
+    <div class="demo-warning">
+      This page is for dissertation/demo use only. It intentionally reveals sensitive seed material to demonstrate honeytrap mechanism live.
+      
+    </div>
+
+    <div class="demo-grid">
+      <div class="demo-panel">
+        <h3>Reveal Seed Set</h3>
+        <div class="demo-row">
+          <div>
+            <label class="demo-label" for="accountSelect">Honeyseed-protected account</label>
+            <select id="accountSelect" class="demo-select"></select>
+          </div>
+          <div>
+            <label class="demo-label" for="passwordInput">Derivation password (optional, used if the seed cache is cold)</label>
+            <input id="passwordInput" class="demo-input" type="password" placeholder="Enter the derivation password if asked" />
+          </div>
+        </div>
+        <div class="demo-actions">
+          <button id="revealBtn" class="demo-btn-main" type="button">Reveal Demo Seeds</button>
+          <button id="registerBtn" class="demo-btn-secondary" type="button" disabled>Sync This Seed Set To Connectly</button>
+          <button id="clearBtn" class="demo-btn-secondary" type="button">Clear View</button>
+        </div>
+        <div id="status" class="demo-status"></div>
+      </div>
+
+      <div class="demo-panel">
+        <h3>Current Seed Material</h3>
+        <div id="summary" class="seed-meta"></div>
+        <div id="tableWrap"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="honey.js"></script>
+<script>
+  (function() {
+    'use strict';
+
+    var ACCOUNTS_KEY = 'hbw_accounts_v1';
+    var accountSelect = document.getElementById('accountSelect');
+    var passwordInput = document.getElementById('passwordInput');
+    var revealBtn = document.getElementById('revealBtn');
+    var registerBtn = document.getElementById('registerBtn');
+    var clearBtn = document.getElementById('clearBtn');
+    var statusEl = document.getElementById('status');
+    var tableWrap = document.getElementById('tableWrap');
+    var summaryEl = document.getElementById('summary');
+    var lastExported = null;
+
+    function setStatus(text, cls) {
+      statusEl.textContent = text || '';
+      statusEl.className = 'demo-status' + (cls ? ' ' + cls : '');
+    }
+
+    function loadHoneyAccounts() {
+      var allAccounts = [];
+      try { allAccounts = JSON.parse(localStorage.getItem(ACCOUNTS_KEY) || '[]'); } catch (e) {}
+      return allAccounts.filter(function(account) {
+        var entry = window.Honey ? window.Honey.getEntry(account.id) : null;
+        return !!(entry && entry.honeyEnabled);
+      });
+    }
+
+    function populateAccounts() {
+      var accounts = loadHoneyAccounts();
+      accountSelect.innerHTML = '';
+      if (!accounts.length) {
+        var none = document.createElement('option');
+        none.value = '';
+        none.textContent = 'No honeyseed-protected accounts available';
+        accountSelect.appendChild(none);
+        revealBtn.disabled = true;
+        return;
+      }
+
+      var selectedId = new URLSearchParams(location.search).get('accountId') || '';
+      accounts.forEach(function(account, index) {
+        var opt = document.createElement('option');
+        opt.value = account.id;
+        opt.textContent = account.serviceName + ' [' + account.id + ']';
+        if ((selectedId && selectedId === account.id) || (!selectedId && index === 0)) {
+          opt.selected = true;
+        }
+        accountSelect.appendChild(opt);
+      });
+      revealBtn.disabled = false;
+    }
+
+    async function buildRows(seedHexArr) {
+      var rows = [];
+      for (var i = 0; i < seedHexArr.length; i++) {
+        var bytes = new Uint8Array(seedHexArr[i].match(/.{2}/g).map(function(b) { return parseInt(b, 16); }));
+        var otp = await window.Honey._totpFromSeed(bytes, 6, 30);
+        rows.push({
+          index: i,
+          kind: i === 0 ? 'Real Seed' : 'Decoy #' + i,
+          kindClass: i === 0 ? 'seed-kind-real' : 'seed-kind-decoy',
+          otp: otp,
+          hex: seedHexArr[i]
+        });
+      }
+      return rows;
+    }
+
+    function renderRows(rows, accountId, serviceName) {
+      summaryEl.innerHTML =
+        '<span><strong>Account:</strong> ' + serviceName + '</span>' +
+        '<span><strong>ID:</strong> ' + accountId + '</span>' +
+        '<span><strong>Total seeds:</strong> ' + rows.length + '</span>' +
+        '<span><strong>Current window:</strong> 30s TOTP</span>';
+
+      var html =
+        '<table class="seed-table">' +
+          '<thead><tr><th>#</th><th>Kind</th><th>Current OTP</th><th>Seed Hex</th></tr></thead><tbody>';
+
+      rows.forEach(function(row) {
+        html +=
+          '<tr>' +
+            '<td>' + row.index + '</td>' +
+            '<td class="' + row.kindClass + '">' + row.kind + '</td>' +
+            '<td class="seed-code">' + row.otp + '</td>' +
+            '<td class="seed-hex">' + row.hex + '</td>' +
+          '</tr>';
+      });
+
+      html += '</tbody></table>';
+      tableWrap.innerHTML = html;
+    }
+
+    async function syncToConnectly() {
+      if (!lastExported) {
+        setStatus('Reveal a seed set first.', 'err');
+        return;
+      }
+
+      registerBtn.disabled = true;
+      setStatus('Registering the currently displayed seed set with Connectly...', '');
+
+      try {
+        var resp = await fetch((window.HBW_CONFIG && window.HBW_CONFIG.connectlyRegisterUrl) || 'https://localhost:3000/api/register-honeybound-account', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            accountId: lastExported.accountId,
+            seeds: lastExported.exported.seeds,
+            realIndex: lastExported.exported.realIndex,
+            serviceName: lastExported.serviceName
+          })
+        });
+        if (!resp.ok) throw new Error('Connectly returned HTTP ' + resp.status);
+        var data = await resp.json();
+        if (!data.success) throw new Error(data.message || 'Connectly rejected the seed set.');
+        lastExported.synced = true;
+        setStatus('Displayed seed set synced to Connectly. Decoy OTPs from this table should now trigger honeytrap instead of invalid OTP.', 'ok');
+      } catch (err) {
+        var msg = err && err.message ? err.message : String(err);
+        if (msg.indexOf('Failed to fetch') !== -1) {
+          msg = 'Could not reach Connectly at https://localhost:3000. Start Connectly and try again.';
+        }
+        setStatus(msg, 'err');
+      } finally {
+        registerBtn.disabled = false;
+      }
+    }
+
+    async function revealSeeds() {
+      var accountId = accountSelect.value;
+      if (!accountId) {
+        setStatus('Select a honeyseed-protected account first.', 'err');
+        return;
+      }
+
+      var account = loadHoneyAccounts().find(function(item) { return item.id === accountId; });
+      if (!account) {
+        setStatus('The selected account is not available anymore.', 'err');
+        return;
+      }
+
+      revealBtn.disabled = true;
+      registerBtn.disabled = true;
+      setStatus('Requesting device PIN to reveal the presentation seed set...', '');
+
+      try {
+        var hadWarmSeed = !!window.Honey._seedCache.get(accountId);
+        var assertion = await window.Honey.assertWithPRF('export');
+        setStatus('Deriving the real seed and decoys for presentation...', '');
+        var exported = await window.Honey.exportSeedsForConnectly(accountId, assertion, passwordInput.value || '');
+        var rows = await buildRows(exported.seeds);
+        renderRows(rows, account.id, account.serviceName || account.id);
+        lastExported = {
+          accountId: account.id,
+          serviceName: account.serviceName || account.id,
+          exported: exported,
+          usedFreshDerivation: !hadWarmSeed,
+          synced: false
+        };
+
+        if (!hadWarmSeed) {
+          registerBtn.disabled = false;
+          setStatus('Demo seed set revealed. Because the cache was cold, this may be a newly derived decoy set. Sync it to Connectly before testing decoy OTPs.', 'err');
+        } else {
+          setStatus('Demo seed set revealed successfully. This seed set already matches the in-session honeyseed cache.', 'ok');
+        }
+      } catch (err) {
+        var msg = err && err.message ? err.message : String(err);
+        if (err && err.name === 'NotAllowedError') msg = 'PIN prompt was cancelled or timed out.';
+        if (msg.indexOf('Seed cache is cold') !== -1) {
+          msg = 'Seed cache is cold. Enter the derivation password and try again.';
+        }
+        setStatus(msg, 'err');
+      } finally {
+        revealBtn.disabled = false;
+      }
+    }
+
+    function clearView() {
+      tableWrap.innerHTML = '';
+      summaryEl.innerHTML = '';
+      passwordInput.value = '';
+      lastExported = null;
+      registerBtn.disabled = true;
+      setStatus('Demo seed table cleared.', '');
+    }
+
+    revealBtn.addEventListener('click', revealSeeds);
+    registerBtn.addEventListener('click', syncToConnectly);
+    clearBtn.addEventListener('click', clearView);
+
+    populateAccounts();
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HoneyBound Mobile</title>
+  <style>
+    :root {
+      --bg: #07111f;
+      --panel: rgba(12, 23, 40, 0.94);
+      --panel-2: rgba(15, 23, 42, 0.94);
+      --border: rgba(125, 211, 252, 0.18);
+      --text: #e6eefc;
+      --muted: #9fb2cc;
+      --accent: #38bdf8;
+      --ok: #34d399;
+      --warn: #fb7185;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top, rgba(56, 189, 248, 0.16), transparent 34%),
+        linear-gradient(165deg, #020617 0%, #081120 58%, #111827 100%);
+      color: var(--text);
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .shell {
+      width: min(100%, 760px);
+      margin: 0 auto;
+      padding: 24px 16px 40px;
+    }
+
+    .hero {
+      background: linear-gradient(145deg, rgba(14, 24, 42, 0.98), rgba(10, 18, 32, 0.96));
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 24px 20px;
+      box-shadow: 0 18px 48px rgba(2, 6, 23, 0.45);
+      margin-bottom: 18px;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(52, 211, 153, 0.12);
+      border: 1px solid rgba(52, 211, 153, 0.2);
+      color: #d1fae5;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 1.8rem;
+      line-height: 1.15;
+    }
+
+    p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 0.97rem;
+    }
+
+    .grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 18px 16px;
+    }
+
+    .card h2 {
+      margin: 0 0 14px;
+      font-size: 1rem;
+    }
+
+    .profile-shell {
+      display: grid;
+      gap: 14px;
+    }
+
+    .profile-head {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .profile-avatar {
+      width: 54px;
+      height: 54px;
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.24), rgba(37, 99, 235, 0.28));
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      color: #e0f2fe;
+      font-size: 1.1rem;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .profile-name {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .profile-sub {
+      color: var(--muted);
+      font-size: 0.84rem;
+      line-height: 1.5;
+      word-break: break-word;
+    }
+
+    .profile-stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .profile-stat {
+      border-radius: 16px;
+      padding: 12px 10px;
+      background: var(--panel-2);
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      text-align: center;
+    }
+
+    .profile-stat-val {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .profile-stat-lbl {
+      font-size: 0.74rem;
+      color: var(--muted);
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(52, 211, 153, 0.12);
+      border: 1px solid rgba(52, 211, 153, 0.18);
+      color: #d1fae5;
+      font-weight: 700;
+      font-size: 0.86rem;
+      margin-bottom: 14px;
+    }
+
+    .meta {
+      display: grid;
+      gap: 10px;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      padding: 12px 0;
+      border-top: 1px solid rgba(148, 163, 184, 0.08);
+    }
+
+    .row:first-child {
+      border-top: 0;
+      padding-top: 0;
+    }
+
+    .label {
+      color: var(--muted);
+      font-size: 0.84rem;
+      min-width: 92px;
+    }
+
+    .value {
+      text-align: right;
+      font-size: 0.92rem;
+      color: var(--text);
+      word-break: break-word;
+    }
+
+    .device,
+    .event {
+      background: var(--panel-2);
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      border-radius: 16px;
+      padding: 14px 14px;
+      margin-bottom: 12px;
+    }
+
+    .device:last-child,
+    .event:last-child {
+      margin-bottom: 0;
+    }
+
+    .device-head,
+    .event-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .device-name,
+    .event-title {
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .device-meta,
+    .event-meta {
+      color: var(--muted);
+      font-size: 0.84rem;
+      line-height: 1.5;
+    }
+
+    .tag {
+      font-size: 0.76rem;
+      border-radius: 999px;
+      padding: 4px 9px;
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      color: #bae6fd;
+      background: rgba(56, 189, 248, 0.1);
+      white-space: nowrap;
+    }
+
+    .empty {
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.6;
+    }
+
+    .note {
+      margin-top: 18px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: rgba(56, 189, 248, 0.08);
+      border: 1px solid rgba(56, 189, 248, 0.14);
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    .btn {
+      width: 100%;
+      border: 0;
+      border-radius: 14px;
+      padding: 13px 16px;
+      background: linear-gradient(135deg, var(--accent), #2563eb);
+      color: #f8fafc;
+      font-size: 0.96rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 14px;
+    }
+
+    .btn.secondary {
+      background: rgba(56, 189, 248, 0.08);
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      color: #bae6fd;
+    }
+
+    .btn[disabled] {
+      opacity: 0.65;
+      cursor: wait;
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <div class="eyebrow">Mobile View</div>
+      <h1>HoneyBound Web</h1>
+      <p>This mobile page confirms the phone was paired successfully and gives you a lightweight view of the linked device state and recent HoneyBound events.</p>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>Profile</h2>
+        <div class="profile-shell">
+          <div class="profile-head">
+            <div class="profile-avatar" id="profileAvatar">HB</div>
+            <div>
+              <div class="profile-name" id="profileName">Linked HoneyBound User</div>
+              <div class="profile-sub" id="profileSub">Loading mobile profile...</div>
+            </div>
+          </div>
+          <div class="profile-stats">
+            <div class="profile-stat">
+              <div class="profile-stat-val" id="profileAccounts">0</div>
+              <div class="profile-stat-lbl">Accounts</div>
+            </div>
+            <div class="profile-stat">
+              <div class="profile-stat-val" id="profileDevices">0</div>
+              <div class="profile-stat-lbl">Devices</div>
+            </div>
+            <div class="profile-stat">
+              <div class="profile-stat-val" id="profileEvents">0</div>
+              <div class="profile-stat-lbl">Recent Events</div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="status" id="linkStatus">Loading linked session...</div>
+        <div class="meta" id="sessionMeta"></div>
+      </article>
+
+      <article class="card">
+        <h2>Linked Devices</h2>
+        <div id="devicesList" class="empty">Loading devices...</div>
+      </article>
+
+      <article class="card">
+        <h2>My Accounts</h2>
+        <div id="accountsPreview" class="empty">Checking whether this phone has a provisioned account bundle...</div>
+        <button id="importBtn" class="btn" type="button">Import accounts to this phone</button>
+        <button id="openAccountsBtn" class="btn secondary" type="button" style="display:none;">Open My Accounts</button>
+        <button id="addAccountBtn" class="btn secondary" type="button" style="display:none;">Add account on this phone</button>
+      </article>
+
+      <article class="card">
+        <h2>Recent Events</h2>
+        <div id="eventsList" class="empty">Loading events...</div>
+      </article>
+    </section>
+
+    <div class="note" id="mobileNote">
+      Import the prepared bundle once on this phone and it becomes a working HoneyBound device with local account storage, OTP generation, and the normal Accounts/Add Account pages.
+    </div>
+  </main>
+
+  <script src="honey.js"></script>
+  <script src="sync.js"></script>
+  <script>
+    (function () {
+      'use strict';
+
+      var params = new URLSearchParams(window.location.search);
+      var token = params.get('token') || '';
+      var linkStatus = document.getElementById('linkStatus');
+      var sessionMeta = document.getElementById('sessionMeta');
+      var devicesList = document.getElementById('devicesList');
+      var accountsPreview = document.getElementById('accountsPreview');
+      var importBtn = document.getElementById('importBtn');
+      var openAccountsBtn = document.getElementById('openAccountsBtn');
+      var addAccountBtn = document.getElementById('addAccountBtn');
+      var eventsList = document.getElementById('eventsList');
+      var mobileNote = document.getElementById('mobileNote');
+      var profileAvatar = document.getElementById('profileAvatar');
+      var profileName = document.getElementById('profileName');
+      var profileSub = document.getElementById('profileSub');
+      var profileAccounts = document.getElementById('profileAccounts');
+      var profileDevices = document.getElementById('profileDevices');
+      var profileEvents = document.getElementById('profileEvents');
+      var currentUid = '';
+      var provisionAccounts = [];
+      var ACCOUNTS_KEY = 'hbw_accounts_v1';
+      var MOBILE_SESSION_KEY = 'hbw_mobile_link_session_v1';
+
+      importBtn.disabled = true;
+
+      function getStoredAccounts() {
+        try { return JSON.parse(localStorage.getItem(ACCOUNTS_KEY) || '[]'); }
+        catch (err) { return []; }
+      }
+
+      function dedupeAccountMetadata(accounts) {
+        var source = Array.isArray(accounts) ? accounts : [];
+        var seen = Object.create(null);
+        var deduped = [];
+        for (var i = 0; i < source.length; i++) {
+          var account = source[i];
+          if (!account || !account.id) continue;
+          var key = String(account.id);
+          if (seen[key]) continue;
+          seen[key] = true;
+          deduped.push(account);
+        }
+        return deduped;
+      }
+
+      function updateProfileStats(extra) {
+        var storedAccounts = dedupeAccountMetadata(getStoredAccounts());
+        if (profileAccounts) profileAccounts.textContent = String(storedAccounts.length);
+        if (extra && typeof extra.devices === 'number' && profileDevices) {
+          profileDevices.textContent = String(extra.devices);
+        }
+        if (extra && typeof extra.events === 'number' && profileEvents) {
+          profileEvents.textContent = String(extra.events);
+        }
+      }
+
+      function renderProfile(details) {
+        var uid = (details && details.uid) || currentUid || '';
+        var deviceName = (details && details.deviceName) || 'This phone';
+        var initials = uid ? uid.slice(0, 2).toUpperCase() : 'HB';
+
+        if (profileAvatar) profileAvatar.textContent = initials;
+        if (profileName) profileName.textContent = uid ? ('User ' + uid) : 'Linked HoneyBound User';
+        if (profileSub) {
+          profileSub.textContent = uid
+            ? (deviceName + ' is linked to HoneyBound as ' + uid + '.')
+            : 'This phone is paired to HoneyBound and can act as a linked device.';
+        }
+        updateProfileStats();
+      }
+
+      function saveMobileSession(tokenValue, uidValue) {
+        localStorage.setItem(MOBILE_SESSION_KEY, JSON.stringify({
+          token: tokenValue || '',
+          uid: uidValue || '',
+          linkedAt: Date.now()
+        }));
+      }
+
+      function getSavedMobileSession() {
+        try {
+          var saved = JSON.parse(localStorage.getItem(MOBILE_SESSION_KEY) || 'null');
+          if (!saved || typeof saved !== 'object') return null;
+          return {
+            token: saved.token || '',
+            uid: saved.uid || '',
+            linkedAt: saved.linkedAt || 0
+          };
+        } catch (err) {
+          return null;
+        }
+      }
+
+      function updateWorkspaceButtons() {
+        var hasAccounts = getStoredAccounts().length > 0;
+        openAccountsBtn.style.display = '';
+        addAccountBtn.style.display = '';
+        openAccountsBtn.textContent = hasAccounts ? 'Open My Accounts' : 'Open My Accounts';
+        addAccountBtn.textContent = hasAccounts ? 'Add account on this phone' : 'Set up first account on this phone';
+      }
+
+      function getWebAuthnAvailabilityError() {
+        var host = window.location.hostname || '';
+        var isIpv4 = /^\d{1,3}(\.\d{1,3}){3}$/.test(host);
+        var isSingleLabel = !!host && host.indexOf('.') === -1 && host !== 'localhost';
+
+        if (!window.isSecureContext) {
+          return 'This phone opened HoneyBound over an insecure HTTP link. WebAuthn setup needs HTTPS on mobile.';
+        }
+        if (isIpv4 || isSingleLabel) {
+          return 'This HoneyBound page is using "' + host + '" as its host. Mobile WebAuthn needs a valid domain name, not a raw IP or bare machine name.';
+        }
+        if (!navigator.credentials || typeof navigator.credentials.create !== 'function') {
+          return 'This browser does not expose WebAuthn credentials here. Open HoneyBound in a normal browser tab that supports WebAuthn.';
+        }
+        return '';
+      }
+
+      function renderLocalWorkspaceState() {
+        var storedAccounts = getStoredAccounts();
+        updateProfileStats();
+        if (!storedAccounts.length) {
+          updateWorkspaceButtons();
+          return false;
+        }
+
+        accountsPreview.className = 'empty';
+        accountsPreview.textContent =
+          'This phone already has ' + storedAccounts.length + ' local HoneyBound account' +
+          (storedAccounts.length !== 1 ? 's' : '') +
+          '. You can open My Accounts or add more accounts directly on this device.';
+        importBtn.style.display = provisionAccounts.length ? '' : 'none';
+        updateWorkspaceButtons();
+        if (mobileNote) {
+          mobileNote.textContent =
+            'This phone is already acting as a HoneyBound device. You can manage OTPs here just like on the main workspace.';
+        }
+        return true;
+      }
+
+      function fmtTime(value) {
+        if (!value) return 'Unknown';
+        var d = new Date(value);
+        return d.toLocaleString([], {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      }
+
+      function eventTitle(type) {
+        if (type === 'device-linked') return 'Device linked';
+        if (type === 'login-success') return 'Login Success';
+        if (type === 'login-invalid') return 'Invalid OTP attempt';
+        if (type === 'honeytrap-triggered') return 'Honeyseed Triggered - Possible Compromise';
+        if (type === 'account-added') return 'Account Added';
+        if (type === 'account-deleted') return 'Account Removed';
+        if (type === 'otp-generated') return 'OTP Generated';
+        if (type === 'verify-no-bundle') return 'Verification blocked';
+        if (type === 'verify-stale-window') return 'Stale OTP window';
+        return type || 'Activity';
+      }
+
+      function eventMeta(event) {
+        var type = event.event || event.type || '';
+        var bits = [];
+        var primary = event.serviceName || event.deviceName || '';
+
+        if (primary) bits.push(primary);
+        if (type === 'honeytrap-triggered' && event.seedIndex !== undefined) {
+          bits.push('Decoy #' + (Number(event.seedIndex) + 1) + ' used');
+        }
+        bits.push(fmtTime(event.ts || event.timestamp));
+
+        return bits.join(' · ');
+      }
+
+      function renderSession(session) {
+        currentUid = session.uid || '';
+        linkStatus.textContent = session.device
+          ? 'Linked as "' + session.device.name + '"'
+          : 'Waiting for link completion';
+        renderProfile({
+          uid: currentUid,
+          deviceName: session.device ? session.device.name : 'This phone'
+        });
+
+        sessionMeta.innerHTML =
+          '<div class="row"><div class="label">User ID</div><div class="value">' + (session.uid || 'Unknown') + '</div></div>' +
+          '<div class="row"><div class="label">Device</div><div class="value">' + (session.device ? session.device.name : 'Pending') + '</div></div>' +
+          '<div class="row"><div class="label">Type</div><div class="value">' + (session.device ? (session.device.type || 'Mobile') : 'Pending') + '</div></div>' +
+          '<div class="row"><div class="label">Linked</div><div class="value">' + (session.device ? fmtTime(session.device.linkedAt) : 'Pending') + '</div></div>';
+      }
+
+      function renderRecoveredSession(savedSession) {
+        currentUid = savedSession && savedSession.uid ? savedSession.uid : '';
+        linkStatus.textContent = 'This phone is already linked to HoneyBound';
+        renderProfile({
+          uid: currentUid,
+          deviceName: 'This phone'
+        });
+        sessionMeta.innerHTML =
+          '<div class="row"><div class="label">User ID</div><div class="value">' + (currentUid || 'Unknown') + '</div></div>' +
+          '<div class="row"><div class="label">Device</div><div class="value">Recovered from local mobile session</div></div>' +
+          '<div class="row"><div class="label">Status</div><div class="value">Linked device remains usable after the QR code expires.</div></div>' +
+          '<div class="row"><div class="label">Saved</div><div class="value">' + fmtTime(savedSession && savedSession.linkedAt) + '</div></div>';
+      }
+
+      function renderDevices(devices) {
+        if (!Array.isArray(devices) || devices.length === 0) {
+          devicesList.className = 'empty';
+          devicesList.textContent = 'No linked devices are recorded yet.';
+          updateProfileStats({ devices: 0 });
+          return;
+        }
+
+        devicesList.className = '';
+        updateProfileStats({ devices: devices.length });
+        devicesList.innerHTML = devices.map(function (device) {
+          return '' +
+            '<div class="device">' +
+              '<div class="device-head">' +
+                '<div class="device-name">' + (device.name || 'Linked Device') + '</div>' +
+                '<div class="tag">' + (device.active ? 'Active' : 'Inactive') + '</div>' +
+              '</div>' +
+              '<div class="device-meta">' +
+                (device.type || 'Mobile') + '<br/>' +
+                'Linked ' + fmtTime(device.linkedAt) +
+              '</div>' +
+            '</div>';
+        }).join('');
+      }
+
+      function renderEvents(events) {
+        if (!Array.isArray(events) || events.length === 0) {
+          eventsList.className = 'empty';
+          eventsList.textContent = 'No recent HoneyBound events are available for this linked user yet.';
+          updateProfileStats({ events: 0 });
+          return;
+        }
+
+        eventsList.className = '';
+        updateProfileStats({ events: events.length });
+        eventsList.innerHTML = events.map(function (event) {
+          return '' +
+            '<div class="event">' +
+              '<div class="event-head">' +
+                '<div class="event-title">' + eventTitle(event.event || event.type) + '</div>' +
+              '</div>' +
+              '<div class="event-meta">' +
+                eventMeta(event) +
+              '</div>' +
+            '</div>';
+        }).join('');
+      }
+
+      function renderProvision(accounts) {
+        provisionAccounts = Array.isArray(accounts) ? accounts : [];
+
+        if (!provisionAccounts.length) {
+          accountsPreview.className = 'empty';
+          accountsPreview.textContent = 'No provisioned account bundle is ready for this phone yet. Keep the desktop HoneyBound dashboard open while linking so it can prepare the transfer.';
+          importBtn.disabled = true;
+          importBtn.textContent = 'Waiting for account bundle...';
+          renderLocalWorkspaceState();
+          return;
+        }
+
+        accountsPreview.className = '';
+        accountsPreview.innerHTML = provisionAccounts.map(function (account) {
+          return '' +
+            '<div class="device">' +
+              '<div class="device-head">' +
+                '<div class="device-name">' + (account.serviceName || account.id) + '</div>' +
+                '<div class="tag">' + (account.digits || 6) + ' digits</div>' +
+              '</div>' +
+              '<div class="device-meta">TOTP period ' + (account.period || 30) + 's</div>' +
+            '</div>';
+        }).join('');
+        importBtn.disabled = false;
+        importBtn.textContent = 'Import accounts to this phone';
+        renderLocalWorkspaceState();
+      }
+
+      async function ensureMobileAuthenticator() {
+        if (localStorage.getItem('hbw_webauthn_cred_id_v1')) {
+          return true;
+        }
+
+        var webAuthnError = getWebAuthnAvailabilityError();
+        if (webAuthnError) {
+          throw new Error(webAuthnError);
+        }
+
+        var challenge = crypto.getRandomValues(new Uint8Array(32));
+        var userId = crypto.getRandomValues(new Uint8Array(16));
+        var credential = await navigator.credentials.create({
+          publicKey: {
+            challenge: challenge,
+            rp: { name: 'HoneyBound Authenticator', id: window.location.hostname },
+            user: { id: userId, name: 'mobile-user', displayName: 'Mobile HoneyBound User' },
+            pubKeyCredParams: [{ alg: -7, type: 'public-key' }, { alg: -257, type: 'public-key' }],
+            authenticatorSelection: {
+              authenticatorAttachment: 'platform',
+              userVerification: 'required',
+              residentKey: 'required'
+            },
+            extensions: { prf: {} },
+            timeout: 60000
+          }
+        });
+
+        var rawId = new Uint8Array(credential.rawId);
+        var credId = btoa(String.fromCharCode.apply(null, rawId));
+        var ext = credential.getClientExtensionResults ? credential.getClientExtensionResults() : null;
+        var prfOk = !!(ext && ext.prf && ext.prf.enabled);
+
+        localStorage.setItem('hbw_webauthn_cred_id_v1', credId);
+        localStorage.setItem('hbw_prf_supported_v1', prfOk ? 'true' : 'false');
+        return true;
+      }
+
+      async function loadProvision(tokenValue) {
+        var accounts = [];
+        var uid = currentUid || '';
+
+        if (uid) {
+          var syncRes = await fetch('/api/honey/account-sync/' + encodeURIComponent(uid), { cache: 'no-store' });
+          var syncData = await syncRes.json().catch(function () { return {}; });
+          if (syncRes.ok && syncData.snapshot && Array.isArray(syncData.snapshot.accounts)) {
+            accounts = syncData.snapshot.accounts;
+          }
+        }
+
+        if (!accounts.length && tokenValue) {
+          var res = await fetch('/api/honey/link-device/provision/' + encodeURIComponent(tokenValue), { cache: 'no-store' });
+          var data = await res.json().catch(function () { return {}; });
+          if (res.ok && data.bundle && Array.isArray(data.bundle.accounts)) {
+            accounts = data.bundle.accounts;
+          }
+        }
+
+        renderProvision(accounts);
+      }
+
+      async function loadDevices(uid) {
+        var res = await fetch('/api/honey/link-device/devices/' + encodeURIComponent(uid));
+        var data = await res.json().catch(function () { return {}; });
+        if (!res.ok || !Array.isArray(data.devices)) {
+          throw new Error(data.error || 'Could not load linked devices');
+        }
+        renderDevices(data.devices);
+      }
+
+      async function loadEvents(uid) {
+        var res = await fetch('/api/honey/audit');
+        var data = await res.json().catch(function () { return []; });
+        if (!res.ok || !Array.isArray(data)) {
+          throw new Error('Could not load audit events');
+        }
+        var filtered = data.filter(function (event) {
+          if (!event || (event.event || event.type) === 'otp-generated') return false;
+          return !uid || event.accountId === uid;
+        }).slice(0, 5);
+        renderEvents(filtered);
+      }
+
+      async function load() {
+        var existingAccounts = dedupeAccountMetadata(getStoredAccounts());
+        if (existingAccounts.length > 0) {
+          window.location.replace('dashboard.html');
+          return;
+        }
+
+        var savedSession = getSavedMobileSession();
+        var effectiveToken = token || (savedSession && savedSession.token) || '';
+
+        if (!effectiveToken && !(savedSession && savedSession.uid)) {
+          linkStatus.textContent = 'This mobile view is missing its token.';
+          sessionMeta.innerHTML = '<div class="row"><div class="label">Status</div><div class="value">Scan a fresh HoneyBound QR code first.</div></div>';
+          devicesList.className = 'empty';
+          devicesList.textContent = 'No linked device data available.';
+          eventsList.className = 'empty';
+          eventsList.textContent = 'No event data available.';
+          importBtn.disabled = true;
+          importBtn.textContent = 'Import unavailable';
+          return;
+        }
+
+        try {
+          var loadedRemoteSession = false;
+          if (effectiveToken) {
+            var sessionRes = await fetch('/api/honey/link-device/session/' + encodeURIComponent(effectiveToken));
+            var sessionData = await sessionRes.json().catch(function () { return {}; });
+            if (sessionRes.ok && sessionData.session) {
+              renderSession(sessionData.session);
+              localStorage.setItem('hbw_user_id_v1', currentUid);
+              saveMobileSession(effectiveToken, currentUid);
+              loadedRemoteSession = true;
+            }
+          }
+
+          if (!loadedRemoteSession) {
+            if (!savedSession || !savedSession.uid) {
+              throw new Error('Could not load linked session');
+            }
+            renderRecoveredSession(savedSession);
+            localStorage.setItem('hbw_user_id_v1', currentUid);
+          }
+
+          renderLocalWorkspaceState();
+          if (currentUid) {
+            await Promise.all([
+              loadDevices(currentUid),
+              loadEvents(currentUid),
+              loadProvision(effectiveToken)
+            ]);
+            window.setInterval(function () {
+              loadEvents(currentUid).catch(function () {});
+            }, 10000);
+          }
+        } catch (err) {
+          linkStatus.textContent = 'Could not load mobile dashboard';
+          sessionMeta.innerHTML = '<div class="row"><div class="label">Error</div><div class="value">' +
+            (err && err.message ? err.message : 'Unknown error') + '</div></div>';
+          devicesList.className = 'empty';
+          devicesList.textContent = 'Linked devices could not be loaded.';
+          eventsList.className = 'empty';
+          eventsList.textContent = 'Recent events could not be loaded.';
+        }
+      }
+
+      async function runImport() {
+        if (!provisionAccounts.length) return;
+        importBtn.disabled = true;
+        importBtn.textContent = 'Importing accounts...';
+
+        try {
+          await ensureMobileAuthenticator();
+          if (!window.Honey || !window.Honey.assertWithPRF) {
+            throw new Error('Honey engine is not available on this phone');
+          }
+
+          var assertion = await window.Honey.assertWithPRF('encryption');
+          var existing = [];
+          try { existing = dedupeAccountMetadata(JSON.parse(localStorage.getItem('hbw_accounts_v1') || '[]')); } catch (e) { existing = []; }
+
+          for (var i = 0; i < provisionAccounts.length; i++) {
+            var account = provisionAccounts[i];
+            await window.Honey.addAccount({
+              id: account.id,
+              serviceName: account.serviceName,
+              secret: account.secret,
+              digits: account.digits || 6,
+              period: account.period || 30
+            }, assertion, null);
+
+            if (!existing.find(function (entry) { return entry.id === account.id; })) {
+              existing.push({
+                id: account.id,
+                serviceName: account.serviceName,
+                digits: account.digits || 6,
+                period: account.period || 30
+              });
+            }
+          }
+
+          if (window.HoneySync) {
+            for (var j = 0; j < provisionAccounts.length; j++) {
+              window.HoneySync.upsertCachedAccount(provisionAccounts[j]);
+            }
+            try {
+              await window.HoneySync.pushSnapshot('linked-device-import');
+            } catch (syncErr) {
+              console.warn('[mobile] Snapshot sync failed:', syncErr && syncErr.message ? syncErr.message : syncErr);
+            }
+          }
+
+          localStorage.setItem('hbw_accounts_v1', JSON.stringify(dedupeAccountMetadata(existing)));
+          if (currentUid) localStorage.setItem('hbw_user_id_v1', currentUid);
+          saveMobileSession(token, currentUid);
+
+          importBtn.textContent = 'Accounts imported';
+          accountsPreview.className = 'empty';
+          accountsPreview.textContent = 'This phone now has a local HoneyBound account store and can use My Accounts and Add Account directly.';
+          if (mobileNote) {
+            mobileNote.textContent =
+              'Import completed. This phone now behaves like a HoneyBound device for local account management and OTP generation.';
+          }
+          updateWorkspaceButtons();
+          setTimeout(function () {
+            window.location.href = 'dashboard.html';
+          }, 500);
+        } catch (err) {
+          importBtn.disabled = false;
+          importBtn.textContent = 'Import accounts to this phone';
+          accountsPreview.className = 'empty';
+          accountsPreview.textContent = err && err.message ? err.message : 'Could not import accounts onto this phone.';
+        }
+      }
+
+      importBtn.addEventListener('click', async function () {
+        await runImport();
+      });
+
+      openAccountsBtn.addEventListener('click', function () {
+        window.location.href = 'accounts.html';
+      });
+
+      addAccountBtn.addEventListener('click', function () {
+        window.location.href = 'add-account.html';
+      });
+
+      load();
+      setInterval(function () {
+        if (currentUid) {
+          loadDevices(currentUid).catch(function () {});
+          loadEvents(currentUid).catch(function () {});
+        }
+        loadProvision(token).catch(function () {});
+      }, 10000);
+    })();
+  </script>
+</body>
+</html>

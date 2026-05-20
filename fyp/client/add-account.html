@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Add TOTP Account – HoneyBound-Web</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Manrope:wght@500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .honey-info {
+      background: rgba(255,204,0,0.05);
+      border: 1px solid rgba(255,204,0,0.2);
+      border-radius: 12px; padding: 16px 18px; margin-bottom: 24px;
+      font-size: 0.83rem; color: var(--cyber-text-dim); line-height: 1.7;
+    }
+    .honey-info strong { color: var(--cyber-yellow); }
+    .spinner {
+      display: none; width: 16px; height: 16px;
+      border: 2px solid rgba(0,255,136,0.3); border-top-color: var(--cyber-accent);
+      border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .status-msg {
+      display: none; margin-top: 14px; padding: 12px 16px;
+      border-radius: 10px; font-size: 0.84rem; font-weight: 600; line-height: 1.5;
+    }
+    .status-msg.success { background:rgba(0,255,136,0.08);  border:1px solid rgba(0,255,136,0.3);  color:var(--cyber-accent); }
+    .status-msg.error   { background:rgba(255,77,106,0.08); border:1px solid rgba(255,77,106,0.3); color:#ff4d6a; }
+    .status-msg.info    { background:rgba(0,204,255,0.07);  border:1px solid rgba(0,204,255,0.25); color:var(--cyber-blue); }
+    .form-help { margin-top:6px; font-size:0.74rem; color:var(--cyber-text-dim); }
+    .form-actions { display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-top:4px; }
+
+    /* ── Account ID reveal panel ── */
+    .account-id-panel {
+      display: none;
+      margin-top: 24px;
+      background: rgba(0,255,136,0.04);
+      border: 1.5px solid rgba(0,255,136,0.35);
+      border-radius: 14px;
+      padding: 22px 24px;
+      animation: fadeSlideIn 0.35s ease both;
+    }
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .panel-title {
+      font-size: 0.82rem; font-weight: 800; color: var(--cyber-accent);
+      text-transform: uppercase; letter-spacing: 0.8px;
+      margin-bottom: 8px; display: flex; align-items: center; gap: 8px;
+    }
+    .panel-desc {
+      font-size: 0.8rem; color: var(--cyber-text-dim); line-height: 1.65; margin-bottom: 16px;
+    }
+    .account-id-box {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.93rem; letter-spacing: 1.5px;
+      background: rgba(0,255,136,0.07);
+      border: 1px solid rgba(0,255,136,0.25);
+      border-radius: 9px; padding: 11px 15px;
+      color: var(--cyber-accent); word-break: break-all;
+      margin-bottom: 14px;
+    }
+    .panel-btns { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom: 14px; }
+    .copy-id-btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 9px 18px;
+      background: linear-gradient(135deg, var(--cyber-accent), #00ccff);
+      border: none; border-radius: 8px;
+      color: #000; font-family: 'Manrope', sans-serif;
+      font-weight: 800; font-size: 0.8rem;
+      text-transform: uppercase; letter-spacing: 0.5px;
+      cursor: pointer; transition: 0.2s;
+    }
+    .copy-id-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+    .copy-id-btn.copied { background: linear-gradient(135deg,#00cc6a,#00ff88); }
+    .goto-accounts-btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 9px 18px; background: transparent;
+      border: 1.5px solid rgba(0,204,255,0.35);
+      border-radius: 8px;
+      color: var(--cyber-blue); font-family: 'Manrope', sans-serif;
+      font-weight: 800; font-size: 0.8rem;
+      text-transform: uppercase; letter-spacing: 0.5px;
+      cursor: pointer; transition: 0.2s; text-decoration: none;
+    }
+    .goto-accounts-btn:hover { background: rgba(0,204,255,0.08); border-color: var(--cyber-blue); }
+    .next-steps-box {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--cyber-border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 0.78rem; color: var(--cyber-text-dim); line-height: 2;
+    }
+    .next-steps-box strong { color: var(--cyber-text); }
+    .step-num-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 18px; height: 18px; border-radius: 50%;
+      background: rgba(0,204,255,0.2); color: var(--cyber-blue);
+      font-size: 0.65rem; font-weight: 800; margin-right: 6px; flex-shrink:0;
+    }
+    .next-step-row { display: flex; align-items: flex-start; gap: 6px; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="logo">HoneyBound-Web</div>
+    <div class="tagline">Add TOTP Account</div>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-bottom:10px;font-size:1.8rem;">Add New Account</h2>
+    <p style="color:var(--cyber-text-dim);font-size:0.84rem;margin-bottom:22px;line-height:1.6;">
+      Your device PIN will be requested <strong style="color:var(--cyber-text)">once</strong> to
+      generate a hardware-bound seed and 19 honeypot decoys.
+      Your <strong style="color:var(--cyber-accent)">Account ID</strong> is shown immediately after — paste it into Connectly to complete linking.
+    </p>
+
+    <div class="honey-info" id="honeyInfoBanner">
+        <strong>Honeyseed Protection (optional):</strong> Enter a derivation password below to enable
+      <strong>1 real + 19 decoy seeds</strong> using your hardware key. Leave it blank to add the
+      account as standard TOTP — OTPs still work, honeytrap detection is disabled.
+    </div>
+
+    <div class="add-account-form" id="addAccountForm">
+      <div class="form-group">
+        <label>Service Name</label>
+        <input type="text" id="serviceName" placeholder="e.g. GitHub, Google…" />
+      </div>
+      <div class="form-group">
+        <label>TOTP Secret Key</label>
+        <input type="text" id="secretKey" placeholder="Base32 encoded secret" autocomplete="off" spellcheck="false" />
+        <div class="form-help">The text key from the app's 2FA setup page (not the QR code).</div>
+      </div>
+      <div class="form-group">
+        <label>
+          Derivation Password
+          <span style="font-size:0.7rem;font-weight:500;color:var(--cyber-text-dim);margin-left:6px;text-transform:none;letter-spacing:0;">(optional — enables honeyseed protection)</span>
+        </label>
+        <input type="password" id="derivPassword" placeholder="Leave blank for standard TOTP" autocomplete="new-password" oninput="updateHoneyMode()" />
+        <div class="form-help" id="derivHelp">Without a password: standard RFC 6238 TOTP only, no honeytrap detection.</div>
+      </div>
+      <div class="form-group">
+        <label>Digits</label>
+        <input type="number" id="digits" value="6" min="6" max="8" />
+      </div>
+      <div class="form-group">
+        <label>Period (seconds)</label>
+        <input type="number" id="period" value="30" min="15" max="60" />
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" id="addBtn" onclick="doAddAccount()">
+          <span class="spinner" id="addSpinner"></span>
+          <span id="addBtnLabel"> Add Account</span>
+        </button>
+        <button class="btn btn-secondary" onclick="location.href='accounts.html'">Cancel</button>
+      </div>
+      <div class="status-msg" id="statusMsg"></div>
+    </div>
+
+    <!-- ── Account ID reveal panel (shown after seed derivation succeeds) ── -->
+    <div class="account-id-panel" id="accountIdPanel">
+      <div class="panel-title">✅ Account Created — Your Account ID</div>
+      <div class="panel-desc">
+        Seeds are stored and registered. Paste this <strong style="color:var(--cyber-accent)">Account ID</strong>
+        into Connectly's 2FA setup (Step 2) alongside your OTP to complete binding.
+        You can also always view it from the <strong style="color:var(--cyber-text)">My Accounts → 🔗</strong> button.
+      </div>
+      <div class="account-id-box" id="accountIdDisplay">—</div>
+      <div class="panel-btns">
+        <button class="copy-id-btn" id="copyIdBtn" onclick="copyAccountId()">⎘ Copy Account ID</button>
+        <button class="copy-id-btn" id="sendToConnectlyBtn" style="display:none;background:linear-gradient(135deg,#1d4fd8,#3b82f6);" onclick="sendIdToConnectly()">↩ Send to Connectly</button>
+        <a class="goto-accounts-btn" href="accounts.html">← My Accounts</a>
+      </div>
+      <div id="sendStatus" style="font-size:0.78rem;min-height:18px;color:var(--cyber-accent);margin-bottom:10px;"></div>
+      <div class="next-steps-box">
+        <div style="font-size:0.75rem;font-weight:800;color:var(--cyber-text);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.6px;">What to do next</div>
+        <div class="next-step-row"><span class="step-num-badge">1</span><span>Go back to <strong>Connectly → Set Up 2FA</strong> (the tab you came from)</span></div>
+        <div class="next-step-row"><span class="step-num-badge">2</span><span>Click <strong>Next</strong> after scanning the QR / copying the secret key</span></div>
+        <div class="next-step-row"><span class="step-num-badge">3</span><span>Paste the Account ID above + enter the OTP code from <strong>My Accounts</strong></span></div>
+        <div class="next-step-row"><span class="step-num-badge">4</span><span>Click <strong>Verify & Enable 2FA</strong> — you're done! 🎉</span></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script src="honey.js"></script>
+<script src="sync.js"></script>
+<script>
+  var STORAGE_KEY = 'hbw_accounts_v1';
+  var CRED_KEY    = 'hbw_webauthn_cred_id_v1';
+
+  function showStatus(msg, type) {
+    var el = document.getElementById('statusMsg');
+    el.textContent   = msg;
+    el.className     = 'status-msg ' + type;
+    el.style.display = 'block';
+  }
+
+  window.addEventListener('load', function () {
+    if (typeof window.Honey === 'undefined') {
+      showStatus('⚠ honey.js failed to load. Check server.js has the /honey.js route.', 'error');
+      document.getElementById('addBtn').disabled = true;
+      return;
+    }
+    if (!localStorage.getItem(CRED_KEY)) {
+      showStatus('⚠ Authenticator not initialised. Go to the home page first.', 'error');
+      document.getElementById('addBtn').disabled = true;
+    }
+    /* Show "↩ Send to Connectly" button if this page was opened as a popup */
+    if (window.opener) {
+      var sendBtn = document.getElementById('sendToConnectlyBtn');
+      if (sendBtn) sendBtn.style.display = 'inline-flex';
+    }
+  });
+
+  function updateHoneyMode() {
+    var pw      = document.getElementById('derivPassword').value;
+    var btnLbl  = document.getElementById('addBtnLabel');
+    var helpEl  = document.getElementById('derivHelp');
+    var banner  = document.getElementById('honeyInfoBanner');
+    if (pw) {
+      btnLbl.textContent  = ' Add Account ';
+      helpEl.textContent  = 'Honeyseed protection enabled ';
+      helpEl.style.color  = 'var(--cyber-accent)';
+      banner.style.borderColor = 'rgba(0,255,136,0.3)';
+      banner.style.background  = 'rgba(0,255,136,0.04)';
+    } else {
+      btnLbl.textContent  = '➕ Add Account';
+      helpEl.textContent  = 'Without a password: standard RFC 6238 TOTP only';
+      helpEl.style.color  = '';
+      banner.style.borderColor = '';
+      banner.style.background  = '';
+    }
+  }
+
+  /* ── Auto-fill fields when opened as popup from Connectly ── */
+  window.addEventListener('load', function () {
+    var params  = new URLSearchParams(window.location.search);
+    var secret  = params.get('secret');
+    var service = params.get('service');
+
+    if (secret) {
+      var secretInput = document.getElementById('secretKey');
+      if (secretInput) {
+        secretInput.value = secret.replace(/\s+/g, '').toUpperCase();
+        secretInput.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    }
+
+    if (service) {
+      var serviceInput = document.getElementById('serviceName');
+      if (serviceInput) {
+        serviceInput.value = service;
+        serviceInput.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    }
+  });
+
+  async function doAddAccount() {
+    if (typeof window.Honey === 'undefined') {
+      showStatus(' Honey engine not available.', 'error'); return;
+    }
+
+    var serviceName   = document.getElementById('serviceName').value.trim();
+    var secret        = document.getElementById('secretKey').value.trim().replace(/\s+/g, '').toUpperCase();
+    var derivPassword = document.getElementById('derivPassword').value;
+    var digits        = parseInt(document.getElementById('digits').value, 10) || 6;
+    var period        = parseInt(document.getElementById('period').value, 10) || 30;
+
+    if (!serviceName) { showStatus('⚠ Service name is required.', 'error'); return; }
+    if (!secret)      { showStatus('⚠ TOTP secret is required.',  'error'); return; }
+
+    var credId = localStorage.getItem(CRED_KEY);
+    if (!credId) {
+      showStatus('❌ No credential found. Please initialise the authenticator first.', 'error'); return;
+    }
+
+    var btn     = document.getElementById('addBtn');
+    var spinner = document.getElementById('addSpinner');
+    btn.disabled          = true;
+    spinner.style.display = 'inline-block';
+
+    var id      = Math.random().toString(36).substring(2, 15);
+    var account = { id: id, serviceName: serviceName, secret: secret, digits: digits, period: period };
+
+    try {
+      if (derivPassword) {
+        /* ── HONEYSEED MODE ── */
+        showStatus(' Requesting PIN to generate honeyseeds…', 'info');
+
+        var assertion = await window.Honey.assertWithPRF('encryption');
+        showStatus(' Deriving 1 real seed + 19 honeyseeds…', 'info');
+        await window.Honey.addAccount(account, assertion, derivPassword);
+
+        /* ── Auto-register seeds with Connectly immediately ── */
+        showStatus('📡 Registering with Connectly…', 'info');
+        try {
+          var exported = await window.Honey.exportSeedsForConnectly(id, assertion, derivPassword);
+          var resp = await fetch((window.HBW_CONFIG && window.HBW_CONFIG.connectlyRegisterUrl) || 'https://localhost:3000/api/register-honeybound-account', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({
+              accountId:   id,
+              seeds:       exported.seeds,
+              realIndex:   exported.realIndex,
+              serviceName: serviceName
+            })
+          });
+          if (!resp.ok) throw new Error('HTTP ' + resp.status);
+          var result = await resp.json();
+          if (!result.success) throw new Error(result.message || 'Unknown error');
+          showStatus(' Seeds registered with Connectly!', 'success');
+        } catch(linkErr) {
+          console.warn('[add-account] Auto-link to Connectly failed:', linkErr.message);
+          showStatus('⚠ Could not auto-register with Connectly — use 🔗 from My Accounts to link later.', 'info');
+        }
+
+      } else {
+        /* ── STANDARD MODE ── */
+        showStatus('➕ Adding as standard TOTP…', 'info');
+        await window.Honey.addAccount(account, null, null);
+        showStatus(' Account added as standard TOTP.', 'success');
+      }
+
+      /* Persist account metadata — strip the raw secret before saving.
+         The secret is already encrypted inside hbw_honey_v1 by Honey.addAccount().
+         Storing it again in plain text here would defeat the encryption. */
+      var existing = [];
+      try { existing = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch(e) { existing = []; }
+      if (!existing.find(function(a){ return a.id === account.id; })) {
+        existing.push({ id: account.id, serviceName: account.serviceName,
+                        digits: account.digits, period: account.period });
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
+      }
+
+      if (window.HoneySync) {
+        window.HoneySync.upsertCachedAccount(account);
+        try {
+          await window.HoneySync.pushSnapshot('account-added');
+        } catch (syncErr) {
+          console.warn('[add-account] Snapshot sync failed:', syncErr && syncErr.message ? syncErr.message : syncErr);
+        }
+      }
+
+      /* ── Reveal Account ID panel immediately ── */
+      document.getElementById('accountIdDisplay').textContent = id;
+      var panel = document.getElementById('accountIdPanel');
+      panel.style.display = 'block';
+      setTimeout(function() { panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 80);
+
+      /* ── Auto-send to Connectly opener if opened as a popup ── */
+      if (window.opener) {
+        window.opener.postMessage({ type: 'honeybound-account-id', accountId: id }, '*');
+        var st = document.getElementById('sendStatus');
+        if (st) { st.textContent = '✓ Account ID sent to Connectly automatically!'; }
+        /* Keep window open briefly so user sees the ID, then close */
+        setTimeout(function() { window.close(); }, 2000);
+      }
+
+      /* Dim the form to signal it's done */
+      var form = document.getElementById('addAccountForm');
+      form.style.opacity        = '0.45';
+      form.style.pointerEvents  = 'none';
+
+    } catch (err) {
+      console.error('[add-account]', err);
+      if (err.name === 'NotAllowedError') {
+        showStatus(' PIN cancelled. Please try again.', 'error');
+      } else if (err.name === 'SecurityError') {
+        showStatus(' Security error — must run on HTTPS (https://localhost:8443).', 'error');
+      } else if (err.name === 'InvalidStateError') {
+        showStatus(' Credential not found on this device. Try re-initialising.', 'error');
+      } else {
+        showStatus(' ' + (err.message || String(err)), 'error');
+      }
+    } finally {
+      btn.disabled          = false;
+      spinner.style.display = 'none';
+    }
+  }
+
+  function copyAccountId() {
+    var id  = document.getElementById('accountIdDisplay').textContent.trim();
+    var btn = document.getElementById('copyIdBtn');
+    navigator.clipboard.writeText(id).catch(function() {
+      var ta = document.createElement('textarea');
+      ta.value = id; document.body.appendChild(ta);
+      ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+    });
+    btn.textContent = '✓ Copied!';
+    btn.classList.add('copied');
+    setTimeout(function() { btn.innerHTML = '⎘ Copy Account ID'; btn.classList.remove('copied'); }, 2000);
+  }
+
+  /* ── Send Account ID back to Connectly opener ────────────────────────
+     Called when this page was opened as a popup from Connectly's 2FA
+     setup or OTP page. Posts the account ID via postMessage, then closes.
+  ─────────────────────────────────────────────────────────────────────── */
+  function sendIdToConnectly() {
+    var id = document.getElementById('accountIdDisplay').textContent.trim();
+    if (!id || id === '—') return;
+    if (window.opener) {
+      window.opener.postMessage({ type: 'honeybound-account-id', accountId: id }, '*');
+      var st = document.getElementById('sendStatus');
+      if (st) { st.textContent = '✓ Sent to Connectly — closing…'; }
+      setTimeout(function() { window.close(); }, 800);
+    }
+  }
+
+
+</script>
+</body>
+</html>
