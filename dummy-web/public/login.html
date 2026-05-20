@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Connectly — Sign In</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    :root{
+      --black:#080c14;--dark:#0d1422;--card:#111827;--card2:#161f30;
+      --border:rgba(255,255,255,.07);--blue:#2563eb;--blue-mid:#3b82f6;
+      --blue-light:#60a5fa;--blue-glow:rgba(37,99,235,.35);
+      --text:#f0f4ff;--muted:#8896ae;--dim:#4b5d78;--input-bg:#0f1825;
+      --sans:'Nunito',sans-serif;--display:'Poppins',sans-serif;
+    }
+    html,body{height:100%;font-family:var(--sans);background:var(--black);color:var(--text);}
+    .layout{display:flex;height:100vh;}
+
+    /* Brand panel */
+    .brand{flex:1;position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;padding:72px 64px;background:var(--dark);}
+    .orb{position:absolute;border-radius:50%;filter:blur(90px);pointer-events:none;}
+    .o1{width:500px;height:500px;background:rgba(37,99,235,.18);top:-150px;left:-150px;}
+    .o2{width:350px;height:350px;background:rgba(96,165,250,.10);bottom:0;right:-80px;}
+    .o3{width:250px;height:250px;background:rgba(37,99,235,.12);top:55%;left:35%;}
+    .notifs{position:absolute;inset:0;pointer-events:none;}
+    .notif{position:absolute;background:rgba(17,24,39,.85);border:1px solid rgba(255,255,255,.09);border-radius:14px;padding:13px 16px;display:flex;align-items:center;gap:11px;backdrop-filter:blur(12px);box-shadow:0 8px 32px rgba(0,0,0,.4);animation:bob var(--d,6s) ease-in-out infinite alternate;}
+    @keyframes bob{from{transform:translateY(0) rotate(var(--r,0deg))}to{transform:translateY(-12px) rotate(var(--r,0deg))}}
+    .nav{width:40px;height:40px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:1rem;}
+    .ni{line-height:1.3;}
+    .ni-name{font-size:.82rem;font-weight:800;color:var(--text);}
+    .ni-txt{font-size:.72rem;color:var(--muted);}
+    .ni-emoji{font-size:1rem;margin-left:auto;}
+    .notif:nth-child(1){top:12%;left:6%;--d:5s;--r:-1.5deg;}
+    .notif:nth-child(2){top:32%;right:5%;--d:7s;--r:2deg;animation-delay:-2.5s;}
+    .notif:nth-child(3){top:58%;left:10%;--d:6s;--r:-2deg;animation-delay:-1s;}
+    .notif:nth-child(4){top:76%;right:8%;--d:8s;--r:1.5deg;animation-delay:-3s;}
+    .bc{position:relative;z-index:2;}
+    .bc-logo{display:flex;align-items:center;gap:12px;margin-bottom:44px;}
+    .lm{width:50px;height:50px;background:linear-gradient(135deg,var(--blue),var(--blue-light));border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;box-shadow:0 0 28px var(--blue-glow);}
+    .ln{font-family:var(--display);font-size:1.7rem;font-weight:800;color:#fff;letter-spacing:-.02em;}
+    .bc-h{font-family:var(--display);font-size:2.9rem;font-weight:800;line-height:1.12;color:#fff;letter-spacing:-.03em;margin-bottom:14px;}
+    .bc-h .hl{background:linear-gradient(90deg,var(--blue-mid),var(--blue-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    .bc-p{font-size:1rem;color:var(--muted);line-height:1.65;max-width:360px;}
+    .pills{display:flex;gap:10px;margin-top:36px;flex-wrap:wrap;}
+    .pill{display:flex;align-items:center;gap:7px;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.22);border-radius:999px;padding:8px 16px;font-size:.82rem;font-weight:700;color:var(--blue-light);}
+    .pill b{color:#fff;}
+
+    /* Form panel */
+    .form-panel{width:460px;flex-shrink:0;background:var(--card);border-left:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:52px 44px;overflow-y:auto;}
+    .fp-title{font-family:var(--display);font-size:1.75rem;font-weight:800;color:#fff;letter-spacing:-.02em;margin-bottom:6px;width:100%;}
+    .fp-sub{font-size:.88rem;color:var(--muted);margin-bottom:28px;width:100%;}
+    .fp-sub a{color:var(--blue-light);text-decoration:none;font-weight:700;}
+    .fp-sub a:hover{color:#fff;}
+    .soc-row{display:flex;gap:10px;width:100%;margin-bottom:18px;}
+
+    /* ── Google button — real OAuth link ── */
+    .soc-btn{flex:1;padding:11px 8px;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--muted);font-family:var(--sans);font-size:.82rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:all .2s;text-decoration:none;}
+    .soc-btn:hover{background:var(--input-bg);border-color:rgba(255,255,255,.13);color:var(--text);}
+    /* Spinning loader state */
+    .soc-btn.loading{opacity:.65;pointer-events:none;}
+    .soc-btn.disabled{opacity:.5;pointer-events:none;border-color:rgba(255,255,255,.05);}
+
+    .divider{display:flex;align-items:center;gap:12px;width:100%;margin-bottom:18px;font-size:.78rem;color:var(--dim);}
+    .divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border);}
+    .field{width:100%;margin-bottom:14px;}
+    .field label{display:block;font-size:.8rem;font-weight:700;color:var(--muted);margin-bottom:7px;}
+    .iw{position:relative;}
+    .ii{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:.95rem;color:var(--dim);pointer-events:none;}
+    .field input{width:100%;background:var(--input-bg);border:1.5px solid var(--border);border-radius:10px;padding:12px 14px 12px 42px;color:var(--text);font-family:var(--sans);font-size:.9rem;font-weight:500;outline:none;transition:border-color .2s,box-shadow .2s;}
+    .field input:focus{border-color:var(--blue-mid);box-shadow:0 0 0 4px rgba(37,99,235,.12);}
+    .field input::placeholder{color:var(--dim);}
+    .row-between{display:flex;justify-content:space-between;align-items:center;width:100%;margin-bottom:18px;}
+    .remember{display:flex;align-items:center;gap:7px;font-size:.82rem;color:var(--muted);cursor:pointer;}
+    .remember input{accent-color:var(--blue-mid);cursor:pointer;}
+    .forgot{font-size:.82rem;font-weight:700;color:var(--blue-light);text-decoration:none;}
+    .forgot:hover{color:#fff;}
+    .btn{width:100%;padding:13px;background:linear-gradient(135deg,#1d4fd8,var(--blue-mid));border:none;border-radius:10px;color:#fff;font-family:var(--display);font-size:.97rem;font-weight:700;cursor:pointer;box-shadow:0 4px 20px var(--blue-glow);transition:transform .15s,box-shadow .2s,opacity .2s;}
+    .btn:hover{transform:translateY(-1px);box-shadow:0 8px 28px rgba(37,99,235,.5);}
+    .btn:active{transform:translateY(0);}
+    .btn.loading{opacity:.65;pointer-events:none;}
+    .alert{width:100%;margin-top:14px;padding:11px 14px;border-radius:10px;font-size:.83rem;font-weight:600;display:none;align-items:center;gap:8px;}
+    .alert.error{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.22);color:#fca5a5;display:flex;}
+    .alert.success{background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.22);color:#86efac;display:flex;}
+    .fp-foot{margin-top:28px;width:100%;text-align:center;font-size:.78rem;color:var(--dim);}
+    .fp-foot a{color:var(--dim);text-decoration:none;margin:0 5px;}
+    .fp-foot a:hover{color:var(--muted);}
+    @media(max-width:820px){.brand{display:none;}.form-panel{width:100%;border-left:none;}}
+    .form-panel>*{animation:su .45s ease both;}
+    @keyframes su{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+    /* OTP step indicator */
+    .step-hint{width:100%;margin-bottom:20px;padding:10px 14px;background:rgba(37,99,235,.07);border:1px solid rgba(37,99,235,.18);border-radius:10px;font-size:.78rem;color:var(--muted);display:flex;align-items:center;gap:8px;}
+    .step-dot{width:6px;height:6px;border-radius:50%;background:var(--blue-mid);flex-shrink:0;}
+
+    /* Google OAuth note */
+    .google-note{width:100%;margin-bottom:8px;padding:9px 13px;background:rgba(66,133,244,.06);border:1px solid rgba(66,133,244,.2);border-radius:9px;font-size:.75rem;color:var(--muted);display:flex;align-items:center;gap:7px;}
+    .google-note-dot{width:5px;height:5px;border-radius:50%;background:#4285F4;flex-shrink:0;}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <!-- Brand -->
+  <div class="brand">
+    <div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div>
+    <div class="notifs">
+      <div class="notif">
+        <div class="nav" style="background:linear-gradient(135deg,#2563eb,#60a5fa)">A</div>
+        <div class="ni"><div class="ni-name">Alex Chen</div><div class="ni-txt">shared a photo · 2m ago</div></div>
+        <div class="ni-emoji">❤️</div>
+      </div>
+      <div class="notif">
+        <div class="nav" style="background:linear-gradient(135deg,#7c3aed,#a78bfa)">M</div>
+        <div class="ni"><div class="ni-name">Maya &amp; 4 others</div><div class="ni-txt">liked your post</div></div>
+        <div class="ni-emoji">👍</div>
+      </div>
+      <div class="notif">
+        <div class="nav" style="background:linear-gradient(135deg,#0891b2,#38bdf8)">J</div>
+        <div class="ni"><div class="ni-name">Jordan K.</div><div class="ni-txt">started following you</div></div>
+        <div class="ni-emoji">✨</div>
+      </div>
+      <div class="notif">
+        <div class="nav" style="background:linear-gradient(135deg,#059669,#34d399)">S</div>
+        <div class="ni"><div class="ni-name">Sofia R.</div><div class="ni-txt">commented on your reel</div></div>
+        <div class="ni-emoji">💬</div>
+      </div>
+    </div>
+    <div class="bc">
+      <div class="bc-logo"><div class="lm">🔗</div><div class="ln">Connectly</div></div>
+      <div class="bc-h">Your world,<br/><span class="hl">connected.</span></div>
+      <div class="bc-p">Share moments, build communities and stay close with the people who matter most.</div>
+      <div class="pills">
+        <div class="pill">👥 <b>2.4M</b> users</div>
+        <div class="pill">📸 <b>18M</b> posts today</div>
+        <div class="pill">🌍 <b>120</b> countries</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form -->
+  <div class="form-panel">
+    <div class="fp-title">Welcome back!</div>
+    <div class="fp-sub">New to Connectly? <a href="/register">Create a free account</a></div>
+
+
+
+    <!-- Google OAuth note -->
+
+
+    <div class="soc-row">
+      <!-- Real Google OAuth link — redirects to /auth/google on the server -->
+      <a href="/auth/google" class="soc-btn" id="googleBtn" onclick="startGoogleAuth(event)">
+        <svg width="15" height="15" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Continue with Google
+      </a>
+      <button class="soc-btn" onclick="showAlert('Facebook login coming soon.','error')" style="flex:0 0 auto;padding:11px 14px;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+        Facebook
+      </button>
+    </div>
+
+    <div class="divider">or sign in with your account</div>
+
+    <div class="field">
+      <label>Username</label>
+      <div class="iw"><span class="ii">@</span><input type="text" id="username" placeholder="your_username" autocomplete="username"/></div>
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <div class="iw"><span class="ii"></span><input type="password" id="password" placeholder="Your password" autocomplete="current-password"/></div>
+    </div>
+
+    <div class="row-between">
+      <label class="remember"><input type="checkbox"/> Keep me signed in</label>
+      <a class="forgot" href="#">Forgot password?</a>
+    </div>
+
+    <button class="btn" id="loginBtn" onclick="doLogin()">Sign In →</button>
+    <div class="alert" id="alert"></div>
+
+    <div class="fp-foot">
+      <a href="#">Privacy</a> · <a href="#">Terms</a> · <a href="#">Help</a> · <a href="#">Cookies</a><br/><br/>
+      © 2025 Connectly
+    </div>
+  </div>
+</div>
+
+<script src="/main.js"></script>
+<script>
+  // Show loading state on Google button while OAuth redirect happens
+  function startGoogleAuth(e) {
+    const btn = document.getElementById('googleBtn');
+    btn.classList.add('loading');
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8896ae" stroke-width="2.5" stroke-linecap="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"><animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="0.8s" repeatCount="indefinite"/></path></svg> Connecting to Google…';
+    // Allow default navigation — the href="/auth/google" takes over
+  }
+
+  // Handle OAuth error params returned from callback
+  (function() {
+    const params = new URLSearchParams(window.location.search);
+    const err = params.get('error');
+    if (err) {
+      const msgs = {
+        google_not_configured: 'Google sign-in is not configured on this local Connectly server yet.',
+        google_denied:  'Google sign-in was cancelled.',
+        csrf:           'Security check failed. Please try again.',
+        google_failed:  'Google sign-in failed. Please try again or use password.',
+        session:        'Session error — please try again.'
+      };
+      showAlert(msgs[err] || 'Sign-in error: ' + err, 'error');
+      // Clean the URL
+      history.replaceState(null, '', '/');
+    }
+  })();
+
+  function showAlert(t, type) {
+    const e = document.getElementById('alert');
+    e.innerHTML = (type === 'error' ? '⚠️ ' : '✓ ') + t;
+    e.className = 'alert ' + type;
+  }
+
+  (async function initGoogleButton() {
+    try {
+      const r = await fetch('/api/auth-status');
+      if (!r.ok) return;
+      const data = await r.json();
+      if (data && data.googleOAuthReady === false) {
+        const btn = document.getElementById('googleBtn');
+        btn.classList.remove('loading');
+        btn.classList.add('disabled');
+        btn.removeAttribute('href');
+        btn.innerHTML = btn.innerHTML.replace('Continue with Google', 'Google Sign-In Unavailable');
+        btn.title = 'Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in dummy-web/.env to enable Google OAuth.';
+      }
+    } catch (e) {}
+  })();
+
+  document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+</script>
+</body>
+</html>

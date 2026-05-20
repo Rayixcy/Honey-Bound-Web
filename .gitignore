@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Runtime secrets and generated state
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.pfx
+*.cer
+dummy-web/server/users.json
+fyp/server/account_sync.json
+fyp/server/audit_log.json
+fyp/server/linked_devices.json
+
+# Local reports / submission exports
+*.docx
+~$*
+
+# OS/editor noise
+.DS_Store
+Thumbs.db

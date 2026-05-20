@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Connectly — Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    :root{
+      --black:#080c14;--dark:#0d1422;--card:#111827;--card2:#161f30;
+      --border:rgba(255,255,255,.07);--blue:#2563eb;--blue-mid:#3b82f6;
+      --blue-light:#60a5fa;--blue-glow:rgba(37,99,235,.35);
+      --green:#22c55e;--green-dim:rgba(34,197,94,.1);
+      --text:#f0f4ff;--muted:#8896ae;--dim:#4b5d78;--input-bg:#0f1825;
+      --sans:'Nunito',sans-serif;--display:'Poppins',sans-serif;
+    }
+    html,body{min-height:100%;font-family:var(--sans);background:var(--black);color:var(--text);}
+    .nav{position:sticky;top:0;z-index:100;background:rgba(8,12,20,.92);backdrop-filter:blur(16px);
+      border-bottom:1px solid var(--border);padding:0 24px;height:60px;
+      display:flex;align-items:center;justify-content:space-between;}
+    .nav-logo{display:flex;align-items:center;gap:10px;}
+    .lm{width:34px;height:34px;background:linear-gradient(135deg,var(--blue),var(--blue-light));
+      border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1rem;}
+    .ln{font-family:var(--display);font-size:1.1rem;font-weight:800;color:#fff;letter-spacing:-.02em;}
+    .nav-right{display:flex;align-items:center;gap:12px;}
+    .avatar-btn{width:36px;height:36px;border-radius:50%;
+      background:linear-gradient(135deg,var(--blue),var(--blue-light));
+      border:none;color:#fff;font-family:var(--display);font-size:.95rem;font-weight:800;
+      cursor:pointer;transition:.2s;}
+    .avatar-btn:hover{transform:scale(1.08);}
+    .logout-btn{padding:7px 16px;background:transparent;border:1px solid var(--border);
+      border-radius:8px;color:var(--muted);font-family:var(--sans);font-size:.8rem;font-weight:700;
+      cursor:pointer;transition:.2s;}
+    .logout-btn:hover{border-color:rgba(255,255,255,.15);color:var(--text);}
+    .layout{display:grid;grid-template-columns:230px 1fr;min-height:calc(100vh - 60px);}
+    @media(max-width:700px){.layout{grid-template-columns:1fr;}.sidebar{display:none;}}
+    .sidebar{background:var(--dark);border-right:1px solid var(--border);padding:24px 14px;}
+    .sb-section{margin-bottom:26px;}
+    .sb-label{font-size:.67rem;font-weight:800;color:var(--dim);text-transform:uppercase;
+      letter-spacing:.8px;padding:0 10px;margin-bottom:8px;}
+    .sb-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;
+      font-size:.86rem;font-weight:700;color:var(--muted);cursor:pointer;transition:.15s;
+      text-decoration:none;border:none;background:none;width:100%;text-align:left;}
+    .sb-item:hover{background:rgba(255,255,255,.04);color:var(--text);}
+    .sb-item.active{background:rgba(37,99,235,.12);color:var(--blue-light);}
+    .sb-item .si{font-size:1rem;width:18px;flex-shrink:0;}
+    .main{padding:30px 26px;max-width:820px;}
+    .welcome{background:linear-gradient(135deg,rgba(37,99,235,.16),rgba(96,165,250,.07));
+      border:1px solid rgba(37,99,235,.2);border-radius:16px;padding:22px 26px;
+      margin-bottom:26px;display:flex;align-items:center;justify-content:space-between;gap:14px;}
+    .welcome-text h2{font-family:var(--display);font-size:1.35rem;font-weight:800;color:#fff;margin-bottom:3px;}
+    .welcome-text p{font-size:.86rem;color:var(--muted);}
+    .welcome-av{width:52px;height:52px;border-radius:50%;
+      background:linear-gradient(135deg,var(--blue),var(--blue-light));
+      display:flex;align-items:center;justify-content:center;
+      font-family:var(--display);font-size:1.4rem;font-weight:800;color:#fff;flex-shrink:0;}
+    .section-title{font-family:var(--display);font-size:1rem;font-weight:700;color:#fff;margin-bottom:12px;}
+    .feed-card{background:var(--card);border:1px solid var(--border);border-radius:14px;
+      padding:18px 20px;margin-bottom:12px;}
+    .post-header{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+    .post-av{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;
+      justify-content:center;font-weight:800;color:#fff;font-size:.9rem;flex-shrink:0;}
+    .post-meta h4{font-size:.88rem;font-weight:800;color:var(--text);margin-bottom:1px;}
+    .post-meta p{font-size:.7rem;color:var(--muted);}
+    .post-body{font-size:.86rem;color:var(--muted);line-height:1.7;margin-bottom:13px;}
+    .post-actions{display:flex;gap:10px;}
+    .action-btn{padding:6px 13px;background:transparent;border:1px solid var(--border);
+      border-radius:8px;color:var(--muted);font-family:var(--sans);font-size:.78rem;font-weight:700;
+      cursor:pointer;transition:.2s;}
+    .action-btn:hover{background:var(--card2);color:var(--text);}
+    .action-btn.liked{color:#f87171;border-color:rgba(248,113,113,.3);}
+    /* ── Settings section ── */
+    .settings-wrap{margin-top:28px;}
+    .settings-group{background:var(--card);border:1px solid var(--border);border-radius:16px;
+      overflow:hidden;margin-bottom:20px;}
+    .settings-row{display:flex;align-items:center;justify-content:space-between;gap:14px;
+      padding:16px 20px;border-bottom:1px solid var(--border);transition:.15s;
+      text-decoration:none;color:inherit;}
+    .settings-row:last-child{border-bottom:none;}
+    .settings-row:hover{background:rgba(255,255,255,.02);}
+    .sr-left{display:flex;align-items:center;gap:13px;}
+    .sr-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;
+      justify-content:center;font-size:1.05rem;flex-shrink:0;}
+    .sr-icon.blue{background:rgba(37,99,235,.12);}
+    .sr-icon.green{background:rgba(34,197,94,.1);}
+    .sr-icon.amber{background:rgba(234,179,8,.1);}
+    .sr-icon.red{background:rgba(239,68,68,.1);}
+    .sr-info h4{font-size:.87rem;font-weight:700;color:var(--text);margin-bottom:1px;}
+    .sr-info p{font-size:.76rem;color:var(--muted);}
+    .sr-right{display:flex;align-items:center;gap:9px;flex-shrink:0;}
+    .badge-on{padding:3px 9px;background:var(--green-dim);border:1px solid rgba(34,197,94,.25);
+      border-radius:20px;font-size:.68rem;font-weight:800;color:var(--green);}
+    .badge-off{padding:3px 9px;background:rgba(255,255,255,.04);border:1px solid var(--border);
+      border-radius:20px;font-size:.68rem;font-weight:700;color:var(--dim);}
+    .chevron{color:var(--dim);font-size:.78rem;}
+  </style>
+</head>
+<body>
+<nav class="nav">
+  <div class="nav-logo">
+    <div class="lm">🔗</div>
+    <div class="ln">Connectly</div>
+  </div>
+  <div class="nav-right">
+    <button class="avatar-btn" id="navAvatar">?</button>
+    <button class="logout-btn" onclick="doLogout()">Sign out</button>
+  </div>
+</nav>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="sb-section">
+      <div class="sb-label">Menu</div>
+      <a class="sb-item active" href="/dashboard"><span class="si">🏠</span> Home</a>
+      <a class="sb-item" href="#"><span class="si">🔔</span> Notifications</a>
+      <a class="sb-item" href="#"><span class="si">💬</span> Messages</a>
+      <a class="sb-item" href="#"><span class="si">🔍</span> Explore</a>
+    </div>
+    <div class="sb-section">
+      <div class="sb-label">Account</div>
+      <a class="sb-item" href="#settings" onclick="document.getElementById('settings').scrollIntoView({behavior:'smooth'});return false;">
+        <span class="si">⚙️</span> Settings
+      </a>
+      <a class="sb-item" href="/2fa-setup"><span class="si">🔐</span> Two-Factor Auth</a>
+      <a class="sb-item" href="#" onclick="doLogout()"><span class="si">🚪</span> Sign Out</a>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="welcome">
+      <div class="welcome-text">
+        <h2>Welcome back, <span id="welcomeName">there</span>! </h2>
+        <p>Here's what's happening in your network today.</p>
+      </div>
+      <div class="welcome-av" id="welcomeAv">?</div>
+    </div>
+
+    <div class="section-title">Feed</div>
+
+    <div class="feed-card">
+      <div class="post-header">
+        <div class="post-av" style="background:linear-gradient(135deg,#2563eb,#60a5fa)">A</div>
+        <div class="post-meta"><h4>Alex Chen</h4><p>2 minutes ago</p></div>
+      </div>
+      <div class="post-body">Just shipped dark mode 🌙 Took three weekends but worth every minute. Drop a ❤️ if you've been waiting for this!</div>
+      <div class="post-actions">
+        <button class="action-btn" onclick="toggleLike(this,142)">🤍 142</button>
+        <button class="action-btn">💬 23</button>
+        <button class="action-btn">↗ Share</button>
+      </div>
+    </div>
+
+    <div class="feed-card">
+      <div class="post-header">
+        <div class="post-av" style="background:linear-gradient(135deg,#7c3aed,#a78bfa)">M</div>
+        <div class="post-meta"><h4>Maya Rivera</h4><p>1 hour ago</p></div>
+      </div>
+      <div class="post-body">Security reminder: enable 2FA on every account you care about. Takes 2 minutes and can save you everything. 🔐</div>
+      <div class="post-actions">
+        <button class="action-btn" onclick="toggleLike(this,89)">🤍 89</button>
+        <button class="action-btn">💬 14</button>
+        <button class="action-btn">↗ Share</button>
+      </div>
+    </div>
+
+    <!-- Settings / Profile section -->
+    <div class="settings-wrap" id="settings">
+      <div class="section-title">Profile &amp; Security</div>
+      <div class="settings-group">
+
+        <a class="settings-row" href="#">
+          <div class="sr-left">
+            <div class="sr-icon blue">👤</div>
+            <div class="sr-info"><h4>Edit Profile</h4><p>Change your name, username, and bio</p></div>
+          </div>
+          <span class="chevron">›</span>
+        </a>
+
+        <a class="settings-row" href="#">
+          <div class="sr-left">
+            <div class="sr-icon blue">🔒</div>
+            <div class="sr-info"><h4>Change Password</h4><p>Update your login password</p></div>
+          </div>
+          <span class="chevron">›</span>
+        </a>
+
+        <!-- ── 2FA row — the main entry point ── -->
+        <a class="settings-row" href="/2fa-setup">
+          <div class="sr-left">
+            <div class="sr-icon green">🔐</div>
+            <div class="sr-info">
+              <h4>Two-Factor Authentication</h4>
+              <p>Add an authenticator app for extra login security</p>
+            </div>
+          </div>
+          <div class="sr-right">
+            <span id="2faBadge" class="badge-off">Set up</span>
+            <span class="chevron">›</span>
+          </div>
+        </a>
+
+        <a class="settings-row" href="#">
+          <div class="sr-left">
+            <div class="sr-icon amber">🔔</div>
+            <div class="sr-info"><h4>Notifications</h4><p>Manage push and email alerts</p></div>
+          </div>
+          <span class="chevron">›</span>
+        </a>
+
+        <a class="settings-row" href="#">
+          <div class="sr-left">
+            <div class="sr-icon red">🗑️</div>
+            <div class="sr-info"><h4>Delete Account</h4><p>Permanently remove your account and data</p></div>
+          </div>
+          <span class="chevron">›</span>
+        </a>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/main.js"></script>
+<script>
+  window.addEventListener('load', async function() {
+    try {
+      var r = await fetch('/api/session-user');
+      var d = await r.json();
+      if (!d.success) { window.location.href = '/'; return; }
+      document.getElementById('welcomeName').textContent = d.displayName || d.username;
+      document.getElementById('welcomeAv').textContent   = d.avatar || d.username[0].toUpperCase();
+      document.getElementById('navAvatar').textContent   = d.avatar || d.username[0].toUpperCase();
+      if (d.totpEnabled) {
+        var b = document.getElementById('2faBadge');
+        b.textContent = 'Enabled'; b.className = 'badge-on';
+      }
+    } catch(e) { window.location.href = '/'; }
+  });
+
+  function toggleLike(btn, base) {
+    btn.classList.toggle('liked');
+    var n = parseInt(base) + (btn.classList.contains('liked') ? 1 : 0);
+    btn.textContent = (btn.classList.contains('liked') ? '❤️ ' : '🤍 ') + n;
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+{
+  "name": "honeybound-web-showcase",
+  "version": "1.0.0",
+  "description": "Browser-based honeyseed TOTP authenticator prototype with WebAuthn-assisted secret protection and a Connectly demo relying party.",
+  "private": true,
+  "workspaces": [
+    "fyp",
+    "dummy-web"
+  ],
+  "scripts": {
+    "start:honeybound": "npm --prefix fyp start",
+    "start:connectly": "npm --prefix dummy-web start",
+    "dev:honeybound": "npm --prefix fyp run dev",
+    "dev:connectly": "npm --prefix dummy-web run dev",
+    "test": "node tests/password.test.mjs"
+  },
+  "keywords": [
+    "webauthn",
+    "totp",
+    "honeytokens",
+    "cybersecurity",
+    "2fa",
+    "prototype"
+  ],
+  "author": "",
+  "license": "MIT"
+}

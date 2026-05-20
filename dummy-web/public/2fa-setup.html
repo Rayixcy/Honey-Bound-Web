@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Connectly — Two-Factor Authentication Setup</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    :root{
+      --black:#080c14;--dark:#0d1422;--card:#111827;--card2:#161f30;
+      --border:rgba(255,255,255,.07);--blue:#2563eb;--blue-mid:#3b82f6;
+      --blue-light:#60a5fa;--blue-glow:rgba(37,99,235,.35);
+      --green:#22c55e;--green-dim:rgba(34,197,94,.12);
+      --honey:#00ff88;--honey-dim:rgba(0,255,136,.1);
+      --text:#f0f4ff;--muted:#8896ae;--dim:#4b5d78;--input-bg:#0f1825;
+      --sans:'Nunito',sans-serif;--display:'Poppins',sans-serif;
+    }
+    html,body{min-height:100%;font-family:var(--sans);background:var(--black);color:var(--text);}
+    body{display:flex;align-items:flex-start;justify-content:center;padding:40px 16px 60px;}
+
+    .page{width:100%;max-width:480px;}
+
+    .back{display:inline-flex;align-items:center;gap:7px;font-size:.82rem;font-weight:700;
+      color:var(--muted);text-decoration:none;margin-bottom:28px;transition:color .2s;}
+    .back:hover{color:var(--text);}
+
+    .logo-bar{display:flex;align-items:center;gap:10px;margin-bottom:32px;}
+    .lm{width:40px;height:40px;background:linear-gradient(135deg,var(--blue),var(--blue-light));
+      border-radius:11px;display:flex;align-items:center;justify-content:center;
+      font-size:1.2rem;box-shadow:0 0 20px var(--blue-glow);}
+    .ln{font-family:var(--display);font-size:1.4rem;font-weight:800;color:#fff;letter-spacing:-.02em;}
+
+    /* Step progress */
+    .steps{display:flex;align-items:center;gap:0;margin-bottom:32px;}
+    .step-item{display:flex;align-items:center;gap:8px;flex:1;}
+    .step-circle{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;
+      justify-content:center;font-size:.75rem;font-weight:800;flex-shrink:0;transition:.3s;}
+    .step-circle.done{background:var(--green);color:#fff;}
+    .step-circle.active{background:var(--blue-mid);color:#fff;box-shadow:0 0 14px rgba(59,130,246,.4);}
+    .step-circle.pending{background:var(--card2);color:var(--dim);border:1.5px solid var(--border);}
+    .step-label{font-size:.72rem;font-weight:700;color:var(--muted);white-space:nowrap;}
+    .step-label.active{color:var(--text);}
+    .step-line{flex:1;height:1px;background:var(--border);margin:0 8px;}
+    .step-line.done{background:var(--green);}
+
+    /* Card */
+    .card{background:var(--card);border:1px solid var(--border);border-radius:20px;
+      padding:36px 36px;box-shadow:0 24px 64px rgba(0,0,0,.4);}
+    .card-icon{font-size:2.6rem;margin-bottom:14px;display:block;}
+    .card-title{font-family:var(--display);font-size:1.4rem;font-weight:800;color:#fff;
+      letter-spacing:-.02em;margin-bottom:8px;}
+    .card-sub{font-size:.88rem;color:var(--muted);line-height:1.65;margin-bottom:24px;}
+
+    .step-panel{display:none;}
+    .step-panel.active{display:block;}
+
+    /* QR / Key */
+    .qr-wrap{display:flex;justify-content:center;margin:20px 0 24px;}
+    .qr-box{background:#fff;border-radius:12px;padding:14px;display:inline-block;
+      box-shadow:0 4px 20px rgba(0,0,0,.3);}
+    #qrcode img,#qrcode canvas{display:block;}
+    .secret-block{background:var(--input-bg);border:1.5px solid var(--border);border-radius:12px;
+      padding:16px 18px;margin-bottom:20px;}
+    .secret-label{font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;
+      letter-spacing:.6px;margin-bottom:8px;}
+    .secret-key{font-family:'Courier New',monospace;font-size:1.05rem;font-weight:700;
+      color:var(--blue-light);letter-spacing:3px;word-break:break-all;line-height:1.8;}
+    .copy-secret-btn{display:inline-flex;align-items:center;gap:6px;margin-top:10px;
+      padding:7px 14px;background:transparent;border:1px solid rgba(96,165,250,.3);
+      border-radius:8px;color:var(--blue-light);font-size:.78rem;font-weight:700;
+      cursor:pointer;transition:.2s;}
+    .copy-secret-btn:hover{background:rgba(96,165,250,.08);border-color:var(--blue-light);}
+    .copy-secret-btn.copied{color:var(--green);border-color:rgba(34,197,94,.4);}
+
+    .info-box{background:rgba(37,99,235,.06);border:1px solid rgba(37,99,235,.18);
+      border-radius:12px;padding:14px 16px;margin-bottom:22px;font-size:.8rem;
+      color:var(--muted);line-height:1.65;}
+    .info-box strong{color:var(--blue-light);}
+    .info-box a{color:var(--blue-light);font-weight:700;text-decoration:none;}
+    .info-box a:hover{color:#fff;}
+
+    .hb-box{background:rgba(0,255,136,.04);border:1px solid rgba(0,255,136,.18);
+      border-radius:12px;padding:14px 16px;margin-bottom:22px;font-size:.8rem;
+      color:var(--muted);line-height:1.65;}
+    .hb-box strong{color:#34d399;}
+    .hb-box a{color:#34d399;font-weight:700;text-decoration:none;}
+    .hb-box a:hover{color:#fff;}
+
+    /* ── Step 2 fields ── */
+    .field{width:100%;margin-bottom:18px;text-align:left;}
+    .field label{display:block;font-size:.78rem;font-weight:700;color:var(--muted);margin-bottom:6px;letter-spacing:.3px;}
+    .field .field-row{display:flex;gap:8px;align-items:center;}
+    .field input[type=text]{flex:1;background:var(--input-bg);border:1.5px solid var(--border);
+      border-radius:10px;padding:10px 14px;color:var(--text);font-family:'Courier New',monospace;
+      font-size:.85rem;font-weight:500;outline:none;transition:border-color .2s,box-shadow .2s;width:100%;}
+    .field input[type=text]:focus{border-color:var(--blue-mid);box-shadow:0 0 0 4px rgba(37,99,235,.12);}
+    .field input[type=text]::placeholder{color:var(--dim);font-family:var(--sans);}
+    .field .hint{font-size:.72rem;color:var(--dim);margin-top:5px;line-height:1.5;}
+    .field .hint a{color:var(--blue-light);text-decoration:none;font-weight:600;}
+    .status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;transition:background .3s;margin-top:3px;}
+    .status-dot.none{background:var(--dim);}
+    .status-dot.ok{background:var(--honey);box-shadow:0 0 6px rgba(0,255,136,.5);}
+
+    .divider{display:flex;align-items:center;gap:10px;margin:4px 0 18px;color:var(--dim);font-size:.75rem;}
+    .divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border);}
+
+    /* OTP digits */
+    .otp-label{font-size:.8rem;font-weight:700;color:var(--muted);margin-bottom:10px;}
+    .otp-row{display:flex;gap:9px;justify-content:center;margin-bottom:8px;}
+    .dig{width:52px;height:60px;background:var(--input-bg);border:1.5px solid var(--border);
+      border-radius:12px;font-family:var(--display);font-size:1.7rem;font-weight:700;
+      color:var(--blue-light);text-align:center;outline:none;caret-color:var(--blue);
+      transition:border-color .2s,box-shadow .2s,transform .15s;}
+    .dig:focus{border-color:var(--blue-mid);box-shadow:0 0 0 4px rgba(37,99,246,.15);transform:scale(1.06);}
+    .dig.filled{border-color:rgba(37,99,235,.4);}
+    .dig.valid{border-color:rgba(34,197,94,.5);color:#34d399;}
+    .dig.error-digit{border-color:rgba(239,68,68,.5);color:#fca5a5;}
+
+    /* Buttons */
+    .btn{width:100%;padding:13px;background:linear-gradient(135deg,#1d4fd8,var(--blue-mid));
+      border:none;border-radius:10px;color:#fff;font-family:var(--display);font-size:.97rem;
+      font-weight:700;cursor:pointer;box-shadow:0 4px 20px var(--blue-glow);
+      transition:transform .15s,box-shadow .2s,opacity .2s;margin-top:8px;}
+    .btn:hover{transform:translateY(-1px);box-shadow:0 8px 28px rgba(37,99,235,.5);}
+    .btn:active{transform:translateY(0);}
+    .btn:disabled,.btn.loading{opacity:.6;pointer-events:none;}
+    .btn-outline{background:transparent;border:1px solid var(--border);color:var(--muted);
+      box-shadow:none;margin-top:10px;}
+    .btn-outline:hover{background:var(--card2);border-color:rgba(255,255,255,.13);
+      color:var(--text);box-shadow:none;transform:none;}
+
+    .alert{width:100%;margin-top:14px;padding:12px 14px;border-radius:10px;
+      font-size:.84rem;font-weight:600;display:none;align-items:center;gap:8px;line-height:1.5;}
+    .alert.error{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.22);color:#fca5a5;display:flex;}
+    .alert.success{background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.22);color:#86efac;display:flex;}
+    .alert.info{background:rgba(37,99,235,.07);border:1px solid rgba(37,99,235,.2);color:var(--blue-light);display:flex;}
+
+    /* Success screen */
+    .success-icon{font-size:4rem;display:block;text-align:center;margin-bottom:16px;
+      animation:popIn .4s cubic-bezier(.175,.885,.32,1.275) both;}
+    @keyframes popIn{from{opacity:0;transform:scale(.5)}to{opacity:1;transform:scale(1)}}
+    .success-title{font-family:var(--display);font-size:1.6rem;font-weight:800;color:#fff;
+      text-align:center;margin-bottom:8px;}
+    .success-sub{font-size:.88rem;color:var(--muted);text-align:center;line-height:1.65;margin-bottom:28px;}
+    .feature-list{list-style:none;margin-bottom:24px;}
+    .feature-list li{display:flex;align-items:flex-start;gap:10px;padding:10px 0;
+      border-bottom:1px solid var(--border);font-size:.84rem;color:var(--muted);}
+    .feature-list li:last-child{border-bottom:none;}
+    .feature-list li span.fi{font-size:1.1rem;flex-shrink:0;}
+    .feature-list li strong{color:var(--text);}
+
+    @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}
+      40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+    .shake{animation:shake .4s ease;}
+
+    .tab-row{display:flex;gap:0;background:var(--input-bg);border-radius:10px;
+      padding:4px;margin-bottom:20px;border:1px solid var(--border);}
+    .tab-btn{flex:1;padding:9px;border:none;border-radius:8px;background:transparent;
+      color:var(--muted);font-family:var(--sans);font-size:.82rem;font-weight:700;cursor:pointer;transition:.2s;}
+    .tab-btn.active{background:var(--blue-mid);color:#fff;box-shadow:0 2px 8px rgba(59,130,246,.3);}
+    .tab-content{display:none;}
+    .tab-content.active{display:block;}
+
+    @media(max-width:520px){
+      body{padding:24px 12px 48px;}
+      .card{padding:24px 20px;}
+      .dig{width:44px;height:54px;font-size:1.5rem;}
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+  <a class="back" href="/dashboard">← Back to profile</a>
+
+  <div class="logo-bar">
+    <div class="lm">🔗</div>
+    <div class="ln">Connectly</div>
+  </div>
+
+  <div class="steps" id="stepBar">
+    <div class="step-item">
+      <div class="step-circle active" id="sc1">1</div>
+      <span class="step-label active" id="sl1">Setup</span>
+    </div>
+    <div class="step-line" id="line1"></div>
+    <div class="step-item">
+      <div class="step-circle pending" id="sc2">2</div>
+      <span class="step-label" id="sl2">Verify</span>
+    </div>
+    <div class="step-line" id="line2"></div>
+    <div class="step-item">
+      <div class="step-circle pending" id="sc3">3</div>
+      <span class="step-label" id="sl3">Done</span>
+    </div>
+  </div>
+
+  <div class="card">
+
+    <!-- ── STEP 1: Show QR / Secret ── -->
+    <div class="step-panel active" id="panel1">
+      <span class="card-icon">🔐</span>
+      <div class="card-title">Set up authenticator app</div>
+      <div class="card-sub">
+        Scan the QR code with your authenticator app, or enter the key manually.
+        We recommend <strong style="color:var(--text)">HoneyBound-Web</strong> for honeytrap protection.
+      </div>
+
+      <div class="tab-row">
+        <button class="tab-btn active" id="tabQR" onclick="switchTab('qr')">📷 Scan QR</button>
+        <button class="tab-btn" id="tabKey" onclick="switchTab('key')">🔑 Enter key</button>
+      </div>
+
+      <div class="tab-content active" id="tabContentQR">
+        <div class="qr-wrap">
+          <div class="qr-box"><div id="qrcode"></div></div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="tabContentKey">
+        <div class="secret-block">
+          <div class="secret-label">Your TOTP secret key</div>
+          <div class="secret-key" id="secretDisplay">Loading…</div>
+          <button class="copy-secret-btn" id="copySecretBtn" onclick="copySecret()">⎘ Copy key</button>
+        </div>
+      </div>
+
+      <div class="hb-box">
+        <strong>🍯 Recommended: HoneyBound-Web</strong><br/>
+        Click below to open HoneyBound-Web. Paste the secret key above, enter a derivation password,
+        and tap your PIN — your <strong>Account ID will be sent back here automatically</strong>.
+        Enables <strong>1 real + 19 decoy seeds</strong> for full honeytrap protection.<br/><br/>
+        <button onclick="openHoneyBoundPopup()" style="
+          display:inline-flex;align-items:center;gap:8px;
+          padding:9px 18px;background:linear-gradient(135deg,#00ff88,#00ccff);
+          border:none;border-radius:9px;color:#000;
+          font-family:var(--sans);font-weight:800;font-size:.82rem;
+          cursor:pointer;letter-spacing:.3px;">
+          🍯 Open HoneyBound-Web ↗
+        </button>
+        <span id="hbPopupStatus" style="display:none;margin-left:12px;font-size:.78rem;color:#34d399;font-weight:700;vertical-align:middle;"></span>
+      </div>
+
+      <div class="info-box">
+        <strong>Standard authenticator apps also work:</strong> Google Authenticator,
+        Microsoft Authenticator, Authy, or any RFC 6238-compatible app.
+        Scan the QR or enter the key manually. Leave Account ID blank in Step 2.
+      </div>
+
+      <button class="btn" onclick="goToStep2()">Next →</button>
+    </div>
+
+    <!-- ── STEP 2: Account ID + OTP Verify ── -->
+    <div class="step-panel" id="panel2">
+      <span class="card-icon">🛡️</span>
+      <div class="card-title">Verify your authenticator</div>
+      <div class="card-sub">
+        Enter the 6-digit code from your authenticator to confirm setup is working.
+        If you're using <strong style="color:var(--text)">HoneyBound-Web</strong>, paste your Account ID first to enable honeytrap detection.
+      </div>
+
+      <!-- HoneyBound Account ID (optional) -->
+      <div class="field">
+        <label>HoneyBound Account ID <span style="font-weight:500;color:var(--dim);font-size:.72rem;">(optional — enables honeytrap detection)</span></label>
+        <div class="field-row">
+          <input type="text" id="accountIdInput" placeholder="Paste Account ID from HoneyBound-Web" autocomplete="off" spellcheck="false" oninput="updateIdDot()"/>
+          <div class="status-dot none" id="idDot" title="No Account ID entered"></div>
+        </div>
+        <div class="hint">
+          Use the <strong style="color:var(--blue-light)">🍯 Open HoneyBound-Web</strong> button in Step 1 and the ID fills here automatically.
+          Or open <button onclick="openHoneyBoundAccountsPopup()" style="background:none;border:none;color:var(--blue-light);font-weight:700;font-size:inherit;cursor:pointer;padding:0;text-decoration:underline;">My Accounts → 🔗 ↗</button>
+          and click the 🔗 button next to your account to send the ID here.
+        </div>
+      </div>
+
+      <div class="divider">then enter your OTP</div>
+
+      <!-- OTP code -->
+      <div class="otp-label">6-digit verification code</div>
+      <div class="otp-row" id="otpRow">
+        <input class="dig" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]"/>
+        <input class="dig" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]"/>
+        <input class="dig" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]"/>
+        <input class="dig" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]"/>
+        <input class="dig" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]"/>
+        <input class="dig" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]"/>
+      </div>
+
+      <div class="alert" id="alert"></div>
+
+      <button class="btn" id="verifyBtn" onclick="verifyCode()">Verify &amp; Enable 2FA →</button>
+      <button class="btn btn-outline" onclick="goToStep1()">← Back</button>
+    </div>
+
+    <!-- ── STEP 3: Success ── -->
+    <div class="step-panel" id="panel3">
+      <span class="success-icon">✅</span>
+      <div class="success-title">2FA Enabled!</div>
+      <div class="success-sub" id="successSub">
+        Two-factor authentication is now active on your account.
+        You'll need a code from your authenticator app every time you sign in.
+      </div>
+      <ul class="feature-list">
+        <li>
+          <span class="fi">🔒</span>
+          <span><strong>Your account is now protected</strong> — even if your password is stolen, attackers can't log in without your authenticator.</span>
+        </li>
+        <li>
+          <span class="fi">🍯</span>
+          <span id="honeyFeatureText"><strong>Using HoneyBound-Web?</strong> You also get honeytrap detection — any use of a decoy seed triggers an instant security alert.</span>
+        </li>
+        <li>
+          <span class="fi">⚠️</span>
+          <span><strong>Keep your secret key safe.</strong> If you lose access to your authenticator, you'll need the backup key to recover your account.</span>
+        </li>
+      </ul>
+      <button class="btn" onclick="window.location.href='/dashboard'">Go to Dashboard →</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  var _secret   = '';
+  var _username = '';
+  var _hbPopup  = null;   // reference to HoneyBound popup window
+
+  /* ── Open HoneyBound add-account as a popup and wait for the account ID ── */
+  function openHoneyBoundPopup() {
+    var w = 520, h = 780;
+    var left = Math.max(0, (screen.width  - w) / 2);
+    var top  = Math.max(0, (screen.height - h) / 2);
+    _hbPopup = window.open(
+      'https://localhost:8443/add-account.html?secret=' + encodeURIComponent(_secret) + '&service=Connectly',
+      'honeybound_add',
+      'width=' + w + ',height=' + h + ',left=' + left + ',top=' + top +
+      ',resizable=yes,scrollbars=yes'
+    );
+    var st = document.getElementById('hbPopupStatus');
+    if (st) { st.style.display = 'inline'; st.textContent = 'Waiting for Account ID…'; }
+  }
+
+  /* ── Open My Accounts as a popup so user can click 🔗 ── */
+  function openHoneyBoundAccountsPopup() {
+    var w = 560, h = 750;
+    var left = Math.max(0, (screen.width  - w) / 2);
+    var top  = Math.max(0, (screen.height - h) / 2);
+    window.open(
+      'https://localhost:8443/accounts.html',
+      'honeybound_accounts',
+      'width=' + w + ',height=' + h + ',left=' + left + ',top=' + top +
+      ',resizable=yes,scrollbars=yes'
+    );
+  }
+
+  /* ── Receive account ID from HoneyBound popup via postMessage ── */
+  window.addEventListener('message', function(e) {
+    if (!e.data || e.data.type !== 'honeybound-account-id') return;
+    var id = e.data.accountId;
+    if (!id) return;
+
+    /* Fill the Account ID field */
+    var input = document.getElementById('accountIdInput');
+    if (input) {
+      input.value = id;
+      updateIdDot();
+      /* Flash the field green briefly */
+      input.style.transition = 'border-color .2s, box-shadow .2s';
+      input.style.borderColor = 'var(--green)';
+      input.style.boxShadow   = '0 0 0 4px rgba(34,197,94,.18)';
+      setTimeout(function() {
+        input.style.borderColor = '';
+        input.style.boxShadow   = '';
+      }, 2000);
+    }
+
+    /* Update the status badge in Step 1 */
+    var st = document.getElementById('hbPopupStatus');
+    if (st) { st.style.display = 'inline'; st.textContent = '✓ Account ID received!'; }
+
+    /* If we're still on Step 1, jump to Step 2 so user sees it filled */
+    var panel1 = document.getElementById('panel1');
+    if (panel1 && panel1.classList.contains('active')) {
+      setTimeout(function() { goToStep2(); }, 600);
+    }
+
+    /* Close the popup if it's still open */
+    if (_hbPopup && !_hbPopup.closed) {
+      try { _hbPopup.close(); } catch(err) {}
+    }
+  });
+
+  window.addEventListener('load', async function() {
+    try {
+      var r = await fetch('/api/session-user');
+      var d = await r.json();
+      if (!d.success) { window.location.href = '/'; return; }
+      _username = d.username;
+    } catch(e) { window.location.href = '/'; return; }
+
+    try {
+      var r2 = await fetch('/api/2fa/secret');
+      var d2 = await r2.json();
+      _secret = d2.secret;
+      renderSecret();
+    } catch(e) {
+      showAlert('Could not load 2FA secret. Is the server running?', 'error');
+    }
+
+    wireDigits();
+  });
+
+  function renderSecret() {
+    document.getElementById('secretDisplay').textContent = formatSecret(_secret);
+    var issuer  = 'Connectly';
+    var label   = encodeURIComponent(issuer + ':' + _username);
+    var uri     = 'otpauth://totp/' + label +
+                  '?secret=' + _secret +
+                  '&issuer=' + issuer +
+                  '&algorithm=SHA1&digits=6&period=30';
+    if (typeof QRCode !== 'undefined') {
+      var div = document.getElementById('qrcode');
+      div.innerHTML = '';
+      new QRCode(div, {
+        text: uri, width: 200, height: 200,
+        colorDark: '#000000', colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+      });
+    }
+  }
+
+  function formatSecret(s) { return s.replace(/(.{4})/g, '$1 ').trim(); }
+
+  function switchTab(tab) {
+    document.getElementById('tabQR').classList.toggle('active', tab === 'qr');
+    document.getElementById('tabKey').classList.toggle('active', tab === 'key');
+    document.getElementById('tabContentQR').classList.toggle('active', tab === 'qr');
+    document.getElementById('tabContentKey').classList.toggle('active', tab === 'key');
+  }
+
+  function copySecret() {
+    navigator.clipboard.writeText(_secret).catch(function() {
+      var ta = document.createElement('textarea');
+      ta.value = _secret; document.body.appendChild(ta);
+      ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+    });
+    var btn = document.getElementById('copySecretBtn');
+    btn.textContent = '✓ Copied!'; btn.classList.add('copied');
+    setTimeout(function() { btn.textContent = '⎘ Copy key'; btn.classList.remove('copied'); }, 2000);
+  }
+
+  /* Account ID status dot */
+  function updateIdDot() {
+    var val = document.getElementById('accountIdInput').value.trim();
+    var dot = document.getElementById('idDot');
+    if (val.length >= 6) {
+      dot.className = 'status-dot ok';
+      dot.title = 'Account ID set — full HoneyBound detection enabled';
+    } else {
+      dot.className = 'status-dot none';
+      dot.title = 'No Account ID — 2FA will work without honeytrap detection';
+    }
+  }
+
+  function goToStep1() { setStep(1); }
+
+  function goToStep2() {
+    if (!_secret) return;
+    setStep(2);
+    setTimeout(function() {
+      var digs = document.querySelectorAll('.dig');
+      if (digs[0]) digs[0].focus();
+    }, 100);
+  }
+
+  function setStep(n) {
+    [1,2,3].forEach(function(i) {
+      document.getElementById('panel' + i).classList.toggle('active', i === n);
+    });
+    updateStepBar(n);
+  }
+
+  function updateStepBar(current) {
+    [1,2,3].forEach(function(i) {
+      var circle = document.getElementById('sc' + i);
+      var label  = document.getElementById('sl' + i);
+      circle.classList.remove('done','active','pending');
+      label.classList.remove('active');
+      if (i < current) { circle.classList.add('done'); circle.textContent = '✓'; }
+      else if (i === current) { circle.classList.add('active'); circle.textContent = i; label.classList.add('active'); }
+      else { circle.classList.add('pending'); circle.textContent = i; }
+    });
+    for (var l = 1; l <= 2; l++) {
+      var line = document.getElementById('line' + l);
+      if (line) line.classList.toggle('done', current > l);
+    }
+  }
+
+  function wireDigits() {
+    var digs = Array.from(document.querySelectorAll('.dig'));
+    digs.forEach(function(inp, i) {
+      inp.addEventListener('input', function() {
+        inp.value = inp.value.replace(/[^0-9]/g, '');
+        if (inp.value) { inp.classList.add('filled'); inp.classList.remove('error-digit'); if (i < 5) digs[i+1].focus(); }
+        else inp.classList.remove('filled');
+        if (digs.every(function(d) { return d.value; })) digs.forEach(function(d) { d.classList.add('valid'); d.classList.remove('error-digit'); });
+        else digs.forEach(function(d) { d.classList.remove('valid'); });
+      });
+      inp.addEventListener('keydown', function(e) {
+        if (e.key === 'Backspace' && !inp.value && i > 0) { digs[i-1].focus(); digs[i-1].value = ''; digs[i-1].classList.remove('filled','valid'); }
+        if (e.key === 'Enter') verifyCode();
+      });
+      inp.addEventListener('paste', function(e) {
+        e.preventDefault();
+        var paste = (e.clipboardData||window.clipboardData).getData('text').replace(/[^0-9]/g,'');
+        for (var j = 0; j < 6 && j < paste.length; j++) { digs[j].value = paste[j]; digs[j].classList.add('filled'); }
+        digs[Math.min(paste.length,5)].focus();
+        if (digs.every(function(d) { return d.value; })) digs.forEach(function(d) { d.classList.add('valid'); });
+      });
+    });
+  }
+
+  async function verifyCode() {
+    var digs      = Array.from(document.querySelectorAll('.dig'));
+    var otp       = digs.map(function(d) { return d.value; }).join('');
+    var accountId = document.getElementById('accountIdInput').value.trim();
+    var btn       = document.getElementById('verifyBtn');
+
+    if (otp.length < 6) { showAlert('Please enter all 6 digits.', 'error'); return; }
+
+    btn.disabled    = true;
+    btn.textContent = 'Verifying…';
+
+    try {
+      var body = { otp: otp };
+      if (accountId) body.accountId = accountId;
+
+      var r = await fetch('/api/2fa/verify-setup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      var d = await r.json();
+
+      if (d.success) {
+        /* Update success screen based on whether HoneyBound was linked */
+        if (accountId && d.honeybound) {
+          document.getElementById('successSub').textContent =
+            '2FA is active and linked to HoneyBound-Web. Honeytrap detection is now enabled — any use of a decoy OTP will trigger an instant alert.';
+          document.getElementById('honeyFeatureText').innerHTML =
+            '<strong>🍯 HoneyBound linked!</strong> Your Account ID is registered. ' +
+            'You\'ll see honeytrap events in <a href="https://localhost:8443/events.html" target="_blank" style="color:#34d399;font-weight:700;">HoneyBound Events ↗</a> if a decoy is ever used.';
+        }
+        setStep(3);
+      } else {
+        var row = document.getElementById('otpRow');
+        row.classList.add('shake');
+        setTimeout(function() { row.classList.remove('shake'); }, 450);
+        digs.forEach(function(d) { d.value = ''; d.classList.remove('filled','valid'); d.classList.add('error-digit'); });
+        setTimeout(function() { digs.forEach(function(d) { d.classList.remove('error-digit'); }); digs[0].focus(); }, 600);
+        showAlert(d.message || 'Invalid code. Please try again.', 'error');
+        btn.disabled = false;
+        btn.textContent = 'Verify & Enable 2FA →';
+      }
+    } catch(e) {
+      showAlert('Connection error. Is the server running?', 'error');
+      btn.disabled = false;
+      btn.textContent = 'Verify & Enable 2FA →';
+    }
+  }
+
+  function showAlert(msg, type) {
+    var el = document.getElementById('alert');
+    el.textContent = (type === 'error' ? '⚠️ ' : type === 'info' ? 'ℹ️ ' : '✓ ') + msg;
+    el.className = 'alert ' + type;
+  }
+</script>
+</body>
+</html>

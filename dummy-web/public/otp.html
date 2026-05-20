@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Connectly — Verify with HoneyBound</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    :root{
+      --black:#080c14;--dark:#0d1422;--card:#111827;--card2:#161f30;
+      --border:rgba(255,255,255,.07);--blue:#2563eb;--blue-mid:#3b82f6;
+      --blue-light:#60a5fa;--blue-glow:rgba(37,99,235,.35);
+      --green:#00ff88;--green-dim:rgba(0,255,136,.12);
+      --text:#f0f4ff;--muted:#8896ae;--dim:#4b5d78;--input-bg:#0f1825;
+      --sans:'Nunito',sans-serif;--display:'Poppins',sans-serif;
+    }
+    html,body{min-height:100%;font-family:var(--sans);background:var(--black);color:var(--text);display:flex;align-items:center;justify-content:center;}
+    body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(37,99,235,.12) 0%,transparent 65%);pointer-events:none;}
+
+    .page{position:relative;z-index:1;width:100%;max-width:520px;padding:24px;}
+
+    .logo{display:flex;align-items:center;justify-content:center;gap:11px;margin-bottom:32px;animation:su .4s ease both;}
+    .lm{width:44px;height:44px;background:linear-gradient(135deg,var(--blue),var(--blue-light));border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;box-shadow:0 0 24px var(--blue-glow);}
+    .ln{font-family:var(--display);font-size:1.5rem;font-weight:800;color:#fff;letter-spacing:-.02em;}
+
+    /* Breadcrumb steps */
+    .steps{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:28px;font-size:.75rem;color:var(--dim);}
+    .step{display:flex;align-items:center;gap:5px;}
+    .step-num{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:800;}
+    .step.done .step-num{background:var(--blue-mid);color:#fff;}
+    .step.active .step-num{background:var(--green);color:#000;}
+    .step.pending .step-num{background:var(--card2);color:var(--dim);}
+    .step-line{width:32px;height:1px;background:var(--border);}
+
+    .card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:36px 36px;text-align:center;box-shadow:0 24px 64px rgba(0,0,0,.5);animation:su .45s ease both .05s;}
+    .shield{font-size:3rem;margin-bottom:14px;display:block;animation:pulse 2.5s ease-in-out infinite;}
+    @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+    .card-title{font-family:var(--display);font-size:1.45rem;font-weight:800;color:#fff;letter-spacing:-.02em;margin-bottom:6px;}
+    .card-sub{font-size:.86rem;color:var(--muted);line-height:1.6;margin-bottom:6px;}
+    .user-tag{display:inline-block;background:rgba(37,99,235,.12);border:1px solid rgba(37,99,235,.25);border-radius:999px;padding:4px 14px;font-size:.8rem;font-weight:700;color:var(--blue-light);margin-bottom:22px;}
+
+    /* HoneyBound info box */
+    .hb-box{background:rgba(0,255,136,.04);border:1px solid rgba(0,255,136,.18);border-radius:14px;padding:16px 18px;margin-bottom:22px;text-align:left;}
+    .hb-box-title{font-size:.8rem;font-weight:800;color:var(--green);margin-bottom:8px;display:flex;align-items:center;gap:7px;}
+    .hb-box p{font-size:.77rem;color:var(--muted);line-height:1.65;}
+    .hb-link{color:var(--green);font-weight:700;text-decoration:none;}
+    .hb-link:hover{color:#fff;}
+
+    /* Account ID field */
+    .field{width:100%;margin-bottom:18px;text-align:left;}
+    .field label{display:block;font-size:.78rem;font-weight:700;color:var(--muted);margin-bottom:6px;letter-spacing:.3px;}
+    .field .field-row{display:flex;gap:8px;align-items:center;}
+    .field input{flex:1;background:var(--input-bg);border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--text);font-family:'Courier New',monospace;font-size:.85rem;font-weight:500;outline:none;transition:border-color .2s,box-shadow .2s;}
+    .field input:focus{border-color:var(--blue-mid);box-shadow:0 0 0 4px rgba(37,99,235,.12);}
+    .field input::placeholder{color:var(--dim);font-family:var(--sans);}
+    .field .hint{font-size:.72rem;color:var(--dim);margin-top:5px;line-height:1.5;}
+    .field .hint a{color:var(--blue-light);text-decoration:none;font-weight:600;}
+    .status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;transition:background .3s;}
+    .status-dot.none{background:var(--dim);}
+    .status-dot.ok{background:var(--green);box-shadow:0 0 6px rgba(0,255,136,.5);}
+
+    /* OTP digits */
+    .otp-label{font-size:.78rem;font-weight:700;color:var(--muted);margin-bottom:10px;text-align:left;width:100%;}
+    .otp-row{display:flex;gap:9px;justify-content:center;margin-bottom:10px;}
+    .dig{width:52px;height:62px;background:var(--input-bg);border:1.5px solid var(--border);border-radius:12px;font-family:var(--display);font-size:1.75rem;font-weight:700;color:var(--blue-light);text-align:center;outline:none;caret-color:var(--blue);transition:border-color .2s,box-shadow .2s,transform .15s;}
+    .dig:focus{border-color:var(--blue-mid);box-shadow:0 0 0 4px rgba(37,99,235,.15);transform:scale(1.06);}
+    .dig.filled{border-color:rgba(37,99,235,.4);}
+    .dig.valid{border-color:rgba(0,255,136,.5);color:var(--green);}
+    .otp-hint{font-size:.75rem;color:var(--dim);margin-bottom:18px;text-align:center;}
+
+    /* Timer */
+    .timer-wrap{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:22px;}
+    .timer-ring{width:40px;height:40px;position:relative;}
+    .timer-ring svg{transform:rotate(-90deg);}
+    .timer-ring circle{fill:none;stroke-width:3;stroke-linecap:round;}
+    .ring-bg{stroke:var(--border);}
+    .ring-fg{stroke:var(--blue-mid);stroke-dasharray:113;stroke-dashoffset:0;transition:stroke-dashoffset 1s linear;}
+    .timer-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:.72rem;font-weight:700;color:var(--blue-light);}
+    .timer-label{font-size:.8rem;color:var(--muted);}
+    .timer-label b{color:var(--text);}
+
+    .btn{width:100%;padding:13px;background:linear-gradient(135deg,#1d4fd8,var(--blue-mid));border:none;border-radius:10px;color:#fff;font-family:var(--display);font-size:.95rem;font-weight:700;cursor:pointer;box-shadow:0 4px 20px var(--blue-glow);transition:transform .15s,box-shadow .2s,opacity .2s;margin-bottom:12px;}
+    .btn:hover{transform:translateY(-1px);box-shadow:0 8px 28px rgba(37,99,235,.5);}
+    .btn.loading{opacity:.65;pointer-events:none;}
+
+    .resend{font-size:.8rem;color:var(--muted);}
+    .resend a{color:var(--blue-light);text-decoration:none;font-weight:700;cursor:pointer;}
+    .resend a:hover{color:#fff;}
+
+    .alert{margin-top:14px;padding:12px 16px;border-radius:10px;font-size:.84rem;font-weight:600;display:none;align-items:center;gap:8px;line-height:1.5;}
+    .alert.error{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.22);color:#fca5a5;display:flex;}
+    .alert.success{background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.22);color:#86efac;display:flex;}
+    .alert.honeytrap{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.35);color:#fcd34d;display:flex;flex-direction:column;gap:4px;}
+    .alert.honeytrap .alert-title{font-size:.88rem;font-weight:800;}
+    .alert.honeytrap .alert-detail{font-size:.75rem;opacity:.85;}
+    .alert.warning{background:rgba(251,191,36,.05);border:1px solid rgba(251,191,36,.2);color:#fcd34d;display:flex;}
+
+    .back-link{display:block;margin-top:18px;font-size:.8rem;color:var(--dim);text-align:center;text-decoration:none;transition:color .2s;}
+    .back-link:hover{color:var(--muted);}
+
+    @keyframes su{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+    @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+    .shake{animation:shake .4s ease;}
+  </style>
+</head>
+<body>
+<div class="page">
+  <div class="logo"><div class="lm">🔗</div><div class="ln">Connectly</div></div>
+
+  <!-- Step breadcrumb -->
+  <div class="steps">
+    <div class="step done"><div class="step-num">✓</div><span>Password</span></div>
+    <div class="step-line"></div>
+    <div class="step active"><div class="step-num">2</div><span>OTP</span></div>
+    <div class="step-line"></div>
+    <div class="step pending"><div class="step-num">3</div><span>Dashboard</span></div>
+  </div>
+
+  <div class="card">
+    <span class="shield">🛡️</span>
+    <div class="card-title">OTP Verification</div>
+    <div class="card-sub">Enter the 6-digit code from HoneyBound-Web</div>
+    <div class="user-tag" id="userTag">loading…</div>
+
+    <!-- HoneyBound info -->
+    <div class="hb-box">
+      <div class="hb-box-title">🍯 Protected by HoneyBound-Web</div>
+      <p>
+        Open <a class="hb-link" href="https://localhost:8443/accounts.html" target="_blank">HoneyBound-Web → My Accounts ↗</a>
+        and copy your 6-digit OTP. Connectly verifies it locally against
+        <strong style="color:var(--green)">1 real + 19 decoy seeds</strong> you registered via the 🔗 button —
+        real seed = ✅ access granted, decoy seed = 🚨 honeytrap alert &amp; block.
+        No calls are made back to HoneyBound at login time.
+      </p>
+    </div>
+
+    <!-- Account ID field -->
+    <div class="field">
+      <label>HoneyBound Account ID</label>
+      <div class="field-row">
+        <input type="text" id="accountId" placeholder="Paste account ID from HoneyBound" autocomplete="off" spellcheck="false" oninput="updateAccountIdStatus()"/>
+        <div class="status-dot none" id="idDot" title="No account ID entered"></div>
+      </div>
+      <div class="hint">
+        When you added your account in HoneyBound-Web, the Account ID was shown automatically after your PIN.
+        You can also retrieve it from the 🔗 button on <a href="https://localhost:8443/accounts.html" target="_blank">My Accounts ↗</a>.
+        Paste it here to enable honeytrap detection.
+      </div>
+    </div>
+
+    <!-- OTP digits -->
+    <div class="otp-label">6-Digit OTP Code</div>
+    <div class="otp-row" id="otpRow">
+      <input class="dig" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]"/>
+      <input class="dig" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]"/>
+      <input class="dig" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]"/>
+      <input class="dig" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]"/>
+      <input class="dig" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]"/>
+      <input class="dig" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]"/>
+    </div>
+    <div class="otp-hint">Type or paste your 6-digit code above</div>
+
+    <div class="timer-wrap">
+      <div class="timer-ring">
+        <svg width="40" height="40" viewBox="0 0 40 40">
+          <circle class="ring-bg" cx="20" cy="20" r="18"/>
+          <circle class="ring-fg" id="ringFg" cx="20" cy="20" r="18"/>
+        </svg>
+        <div class="timer-num" id="timerNum">5:00</div>
+      </div>
+      <div class="timer-label">Session expires in <b id="timerText">5 minutes</b></div>
+    </div>
+
+    <button class="btn" id="verifyBtn" onclick="doVerify()">Verify with HoneyBound →</button>
+    <div class="resend">Wrong code? <a onclick="resetTimer()">Reset timer</a> · <a href="/">Back to login</a></div>
+    <div class="alert" id="alert"></div>
+  </div>
+
+  <a class="back-link" href="/">← Back to Sign In</a>
+</div>
+
+<script src="/main.js"></script>
+<script>
+  // Load session user — only used to display the username tag
+  // Do NOT redirect here under any circumstance; /api/verify-otp enforces auth
+  fetch("/api/session-user")
+    .then(r => r.json())
+    .then(d => {
+      if (d.success && d.username) {
+        document.getElementById("userTag").textContent = "@" + d.username;
+      }
+      if (d.success && d.honeyAccountId) {
+        const accountField = document.getElementById('accountId');
+        accountField.value = d.honeyAccountId;
+        updateAccountIdStatus();
+        const hint = document.querySelector('.field .hint');
+        if (hint) {
+          hint.innerHTML =
+            'HoneyBound Account ID was loaded automatically for this linked user, so server-side honeytrap detection is active on this device.';
+        }
+      }
+      // If no session yet, just leave the tag as "loading..." — user will
+      // be rejected when they actually submit the OTP
+    })
+    .catch(() => {
+      // Silently ignore — page stays visible
+    });
+
+  // Account ID status indicator
+  function updateAccountIdStatus(){
+    const val = document.getElementById('accountId').value.trim();
+    const dot = document.getElementById('idDot');
+    if(val.length >= 6){dot.className='status-dot ok';dot.title='Account ID set — full HoneyBound detection enabled';}
+    else{dot.className='status-dot none';dot.title='No account ID — demo mode only';}
+  }
+
+  // OTP digit wiring
+  const digs=Array.from(document.querySelectorAll('.dig'));
+  digs.forEach((inp,i)=>{
+    inp.addEventListener('input',e=>{
+      inp.value=inp.value.replace(/[^0-9]/g,'');
+      if(inp.value){inp.classList.add('filled');if(i<5)digs[i+1].focus();}
+      else inp.classList.remove('filled');
+      // All 6 filled? highlight
+      if(digs.every(d=>d.value)) digs.forEach(d=>d.classList.add('valid'));
+      else digs.forEach(d=>d.classList.remove('valid'));
+    });
+    inp.addEventListener('keydown',e=>{
+      if(e.key==='Backspace'&&!inp.value&&i>0){digs[i-1].focus();digs[i-1].value='';digs[i-1].classList.remove('filled','valid');}
+      if(e.key==='Enter')doVerify();
+    });
+    inp.addEventListener('paste',e=>{
+      e.preventDefault();
+      const paste=(e.clipboardData||window.clipboardData).getData('text').replace(/[^0-9]/g,'');
+      for(let j=0;j<6&&j<paste.length;j++){digs[j].value=paste[j];digs[j].classList.add('filled');}
+      digs[Math.min(paste.length,5)].focus();
+      if(digs.every(d=>d.value))digs.forEach(d=>d.classList.add('valid'));
+    });
+  });
+  digs[0].focus();
+
+  // 5-min countdown
+  const TOTAL=300;
+  let timeLeft=TOTAL;
+  const circ=113;
+  function updateTimer(){
+    const pct=timeLeft/TOTAL;
+    document.getElementById('ringFg').style.strokeDashoffset=circ*(1-pct);
+    const m=Math.floor(timeLeft/60),s=timeLeft%60;
+    document.getElementById('timerNum').textContent=`${m}:${String(s).padStart(2,'0')}`;
+    document.getElementById('timerText').textContent=timeLeft>0?(Math.ceil(timeLeft/60)===1?'1 minute':`${Math.ceil(timeLeft/60)} minutes`):'expired';
+    if(timeLeft===0){clearInterval(timerInt);showAlert('Session expired. <a href="/">Please log in again.</a>','error');}
+    timeLeft--;
+  }
+  let timerInt=setInterval(updateTimer,1000);
+  updateTimer();
+  function resetTimer(){
+    timeLeft=TOTAL;clearInterval(timerInt);timerInt=setInterval(updateTimer,1000);updateTimer();
+    showAlert('Timer reset.','success');
+  }
+
+  function showAlert(html,type){
+    const e=document.getElementById('alert');
+    if(type==='honeytrap'){
+      e.innerHTML=html;
+    } else {
+      e.innerHTML=(type==='error'?'⚠️ ':type==='warning'?'⚠️ ':'✓ ')+html;
+    }
+    e.className='alert '+type;e.style.display='flex';
+  }
+  function clearDigits(){digs.forEach(d=>{d.value='';d.classList.remove('filled','valid');});digs[0].focus();}
+  function shakeRow(){
+    const r=document.getElementById('otpRow');
+    r.classList.add('shake');
+    setTimeout(()=>r.classList.remove('shake'),450);
+  }
+
+  async function doVerify(){
+    const otp=digs.map(d=>d.value).join('');
+    const accountId=document.getElementById('accountId').value.trim();
+    const btn=document.getElementById('verifyBtn');
+    if(otp.length<6){showAlert('Please enter all 6 digits.','error');return;}
+    btn.classList.add('loading');btn.textContent='Verifying with HoneyBound…';
+    try{
+      const body={otp, windowEnd: Math.floor(Date.now()/30000)};
+      if(accountId){
+        body.accountId=accountId;
+        // Optional local pre-check when a HoneyBound runtime is available in this page.
+        if(window.Honey){
+          const honeyResult=await Honey.verifyOTP(accountId,otp);
+          body.honeyResult=honeyResult.result;       // 'success'|'honeytrap'|'invalid'
+          if(honeyResult.index!=null) body.honeyIndex=honeyResult.index;
+        }
+      }
+      const r=await fetch('/api/verify-otp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+      const d=await r.json();
+
+      if(d.success){
+        // Show mode badge if returned
+        const modeMsg = d.mode==='honeybound' ? ' Verified via HoneyBound ✓' :
+                        d.mode==='fallback'    ? ' (HoneyBound offline — demo mode)' : '';
+        showAlert('Identity verified! Welcome to Connectly ✨'+modeMsg,'success');
+        if(d.warning) setTimeout(()=>showAlert('⚠️ '+d.warning,'warning'),1000);
+        setTimeout(()=>window.location.href=d.redirect||'/dashboard',1000);
+
+      } else if(d.honeytrap){
+        // Honeytrap detected — show alert briefly, then silently redirect to fakedashboard
+        // so the attacker doesn't know they've been caught
+        showAlert(
+          `<div class="alert-title">❌ invalid otp HONEYTRAP DETECTED</div>` +
+          `<div class="alert-detail">${d.message}</div>` +
+          `<div class="alert-detail" style="margin-top:4px;">Decoy seed #${(d.index??0)+1} was used. Check <a href="https://localhost:8443/events.html" target="_blank" style="color:var(--blue-light);font-weight:700;">HoneyBound Events ↗</a> for details.</div>`,
+          'honeytrap'
+        );
+        // ✅ FIX: redirect to fakedashboard after brief delay — attacker sees "success"
+        setTimeout(()=>window.location.href=d.redirect||'/fakedashboard',1500);
+        shakeRow();clearDigits();
+        btn.classList.remove('loading');btn.textContent='Verify with HoneyBound →';
+
+      } else {
+        showAlert(d.message||'Invalid OTP. Please try again.','error');
+        shakeRow();clearDigits();
+        btn.classList.remove('loading');btn.textContent='Verify with HoneyBound →';
+      }
+    }catch(err){
+      showAlert('Connection error. Make sure the server is running.','error');
+      btn.classList.remove('loading');btn.textContent='Verify with HoneyBound →';
+    }
+  }
+</script>
+</body>
+</html>

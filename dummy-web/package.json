@@ -1,0 +1,18 @@
+{
+  "name": "connectly-dummy-web",
+  "version": "2.0.0",
+  "description": "Connectly — Social demo app with HoneyBound-Web OTP integration",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "express": "^4.18.2",
+    "express-session": "^1.17.3",
+    "nodemailer": "^8.0.4",
+    "resend": "^6.9.4"
+  }
+}
