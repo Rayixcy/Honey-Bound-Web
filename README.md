@@ -132,12 +132,4 @@ Known limitations include:
 
 The deeper implementation notes are in [fyp/docs/implementation-notes.md](fyp/docs/implementation-notes.md), and the full prototype README is in [fyp/README.md](fyp/README.md).
 
-## GitHub Hygiene Checklist
 
-Before publishing publicly:
-
-- Ensure `node_modules/` is untracked from Git history/current index.
-- Do not commit real `.env` files, TLS private keys, app passwords, OAuth secrets, or live `users.json`.
-- Include screenshots or a demo GIF.
-- Commit a clean working tree.
-- Keep the prototype disclaimer visible.
