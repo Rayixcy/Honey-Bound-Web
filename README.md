@@ -131,5 +131,3 @@ Known limitations include:
 - Limited automated test coverage
 
 The deeper implementation notes are in [fyp/docs/implementation-notes.md](fyp/docs/implementation-notes.md), and the full prototype README is in [fyp/README.md](fyp/README.md).
-
-
