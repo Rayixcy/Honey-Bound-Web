@@ -5,16 +5,16 @@ The project is intentionally presented as a research and demonstration artifact,
 
 ## What It Demonstrates
 
--Browser-based authenticator setup with WebAuthn platform credentials
--PRF-assisted local encryption for stored TOTP secrets
--RFC 6238-compatible OTP generation
--Deterministic honeyseed derivation with one real seed and decoy seeds
--Connectly relying-party demo that verifies real and decoy OTPs
--Honeytrap-style detection triggered when a decoy seed-derived OTP is used
--Same-session replay prevention and stale time-window checks
--Trusted-time checks for sensitive authentication flows
--Live audit/event dashboard and evaluation export
--Local device linking flow for prototype recovery testing
+- Browser-based authenticator setup with WebAuthn platform credentials
+- PRF-assisted local encryption for stored TOTP secrets
+- RFC 6238-compatible OTP generation
+- Deterministic honeyseed derivation with one real seed and decoy seeds
+- Connectly relying-party demo that verifies real and decoy OTPs
+- Honeytrap-style detection triggered when a decoy seed-derived OTP is used
+- Same-session replay prevention and stale time-window checks
+- Trusted-time checks for sensitive authentication flows
+- Live audit/event dashboard and evaluation export
+- Local device linking flow for prototype recovery testing
 
 ## Repository Layout
 
@@ -33,11 +33,12 @@ The project is intentionally presented as a research and demonstration artifact,
 
 ## Architecture
 
-HoneyBound-Web runs locally on https://localhost:8443 and acts as the browser authenticator. Connectly runs locally on https://localhost:3000 and acts as the relying-party demo service that receives a seed bundle, verifies OTP submissions, rejects replayed codes, and raises honeytrap events when a decoy seed is used.
+HoneyBound-Web runs locally on `https://localhost:8443` and acts as the browser authenticator. Connectly runs locally on `https://localhost:3000` and acts as the relying-party demo service that receives a seed bundle, verifies OTP submissions, rejects replayed codes, and raises honeytrap events when a decoy seed is used.
 
 The visible OTP remains a standard TOTP code so the user experience stays compatible with conventional authenticator workflows.
 
 The primary research contribution is the introduction of a detection pathway that distinguishes real from decoy seed-derived OTPs and surfaces suspicious activity in the audit dashboard.
+
 ## Quick Start
 
 Install dependencies for both apps:
@@ -100,26 +101,21 @@ npm test
 
 The current test suite is intentionally small and focuses on core utility behavior that can run without starting HTTPS/WebAuthn browser flows.
 
-## Screenshots To Add Before Publishing
+## Screenshots
 
+HoneyBound dashboard with accounts and security events:
 
+<img width="734" height="325" alt="HoneyBound dashboard with accounts" src="https://github.com/user-attachments/assets/03f5102f-19a7-41a6-b9a7-f96d78e96337" />
+<img width="745" height="373" alt="HoneyBound security events dashboard" src="https://github.com/user-attachments/assets/1f53c280-0b50-45d3-bf8e-60a971e0f1dc" />
 
-- HoneyBound dashboard with accounts and security events
+Connectly login and OTP verification flow:
 
+<img width="712" height="348" alt="Connectly login flow" src="https://github.com/user-attachments/assets/9a4188b6-d517-42f3-bb5a-c0cab3d1b6a4" />
+<img width="670" height="403" alt="Connectly OTP verification flow" src="https://github.com/user-attachments/assets/b6044eab-f6d1-43ef-9562-918ac0dec260" />
 
-<img width="734" height="325" alt="image" src="https://github.com/user-attachments/assets/03f5102f-19a7-41a6-b9a7-f96d78e96337" />
-<img width="745" height="373" alt="image" src="https://github.com/user-attachments/assets/1f53c280-0b50-45d3-bf8e-60a971e0f1dc" />
+Honeytrap/decoy event:
 
-- Connectly login and OTP verification flow
-<img width="712" height="348" alt="image" src="https://github.com/user-attachments/assets/9a4188b6-d517-42f3-bb5a-c0cab3d1b6a4" />
-<img width="670" height="403" alt="image" src="https://github.com/user-attachments/assets/b6044eab-f6d1-43ef-9562-918ac0dec260" />
-
-
-- Honeytrap/decoy event
-
-  <img width="786" height="269" alt="image" src="https://github.com/user-attachments/assets/98c96fcf-b17b-4f10-9e06-06ff1690b2a2" />
-
-
+<img width="786" height="269" alt="Honeytrap decoy event" src="https://github.com/user-attachments/assets/98c96fcf-b17b-4f10-9e06-06ff1690b2a2" />
 
 ## Security Notes
 
@@ -142,6 +138,6 @@ Before publishing publicly:
 
 - Ensure `node_modules/` is untracked from Git history/current index.
 - Do not commit real `.env` files, TLS private keys, app passwords, OAuth secrets, or live `users.json`.
-- Add screenshots or a demo GIF.
+- Include screenshots or a demo GIF.
 - Commit a clean working tree.
 - Keep the prototype disclaimer visible.
