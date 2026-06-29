@@ -1,6 +1,6 @@
 $ErrorActionPreference = 'Stop'
 
-$env:HBW_PUBLIC_LINK_ORIGIN = 'https://honeybound.192-168-1-21.nip.io:8443'
+$env:HBW_PUBLIC_LINK_ORIGIN = 'https://honeybound.192-168-1-2x.nip.io:8443'
 $env:HBW_TLS_PFX_PATH = 'server/lan-domain-cert.pfx'
 
 if (-not $env:HBW_TLS_PFX_PASSPHRASE) {
