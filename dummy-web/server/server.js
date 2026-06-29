@@ -60,6 +60,10 @@ if (!GOOGLE_OAUTH_READY) {
 const app  = express();
 const PORT = Number(process.env.PORT || 3000);
 
+if (process.env.VERCEL) {
+    app.set('trust proxy', 1);
+}
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
 const publicPath = path.join(__dirname, '..', 'public');
@@ -985,10 +989,14 @@ app.post('/api/logout', (req, res) => {
 // ─── 404 fallback ─────────────────────────────────────────────────────────────
 app.use((req, res) => res.status(404).send('Not found'));
 
-https.createServer(loadHttpsOptions(), app).listen(PORT, () => console.log(
-    `\n🔗 Connectly running at https://localhost:${PORT}` +
-    `\n   Google OAuth: /auth/google  (${GOOGLE_OAUTH_READY ? 'configured' : 'set GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET in .env'})` +
-    `\n   Email alerts: honeytrap ✓ | login ✓ | failed-OTP ✓ | fake-dash ✓` +
-    `\n   OTP mode: STRICT — no fallback` +
-    `\n   HoneyBound expected at https://localhost:8443\n`
-));
+if (!process.env.VERCEL) {
+    https.createServer(loadHttpsOptions(), app).listen(PORT, () => console.log(
+        `\n🔗 Connectly running at https://localhost:${PORT}` +
+        `\n   Google OAuth: /auth/google  (${GOOGLE_OAUTH_READY ? 'configured' : 'set GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET in .env'})` +
+        `\n   Email alerts: honeytrap ✓ | login ✓ | failed-OTP ✓ | fake-dash ✓` +
+        `\n   OTP mode: STRICT — no fallback` +
+        `\n   HoneyBound expected at https://localhost:8443\n`
+    ));
+}
+
+export default app;
